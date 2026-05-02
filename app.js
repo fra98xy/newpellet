@@ -39,7 +39,7 @@ const products = [
   }
 ];
 
-let cart = JSON.parse(localStorage.getItem("newpellet_cart") || "[]");
+let cart = JSON.parse(localStorage.getItem("newpellet_cart") || "[]").filter(item => products.some(p => p.id === item.id));
 let deferredPrompt = null;
 
 const euro = n => n.toLocaleString("it-IT",{style:"currency",currency:"EUR"});
