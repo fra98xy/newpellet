@@ -17,7 +17,7 @@ export default async (req: Request) => {
     const subscribers = await db.select({ email: newsletter_subscribers.email }).from(newsletter_subscribers);
 
     if (subscribers.length === 0) {
-      return Response.json({ success: true, message: "No subscribers found." });
+      return Response.json({ success: true, message: "No subscribers found." , emailSent: false, emailError: null });
     }
 
     const emails = subscribers.map(s => s.email);
@@ -31,33 +31,37 @@ export default async (req: Request) => {
       </div>
     `;
 
+    let emailSent = false;
+    let emailError: string | null = null;
     try {
       const transporter = nodemailer.createTransport({
-        host: Netlify.env.get("SMTP_HOST") || "smtp.gmail.com",
-        port: Number(Netlify.env.get("SMTP_PORT") || 465),
-        secure: true,
+        host: process.env["SMTP_HOST"] || "smtp.gmail.com",
+        port: Number(process.env["SMTP_PORT"] || 587),
+        secure: Number(process.env["SMTP_PORT"] || 587) === 465,
         auth: {
-          user: Netlify.env.get("SMTP_USER") || "newpellet2022@gmail.com",
-          pass: Netlify.env.get("SMTP_PASS") || ""
+          user: process.env["SMTP_USER"] || "newpellet2022@gmail.com",
+          pass: process.env["SMTP_PASS"] || ""
         }
       });
 
-      if (Netlify.env.get("SMTP_PASS")) {
+      if (process.env["SMTP_PASS"]) {
         await transporter.sendMail({
-          from: `"Newpellet Offerte" <${Netlify.env.get("SMTP_USER") || "newpellet2022@gmail.com"}>`,
+          from: `"Newpellet Offerte" <${process.env["SMTP_USER"] || "newpellet2022@gmail.com"}>`,
           bcc: emails.join(","), // send as BCC to protect privacy
           subject: subject,
           html: htmlBody
         });
+        emailSent = true;
       } else {
-        console.log("SMTP_PASS not set. Email not sent. Would have sent to:", emails);
+        emailError = "Manca la 'Password per le app' di Google nelle variabili Netlify (SMTP_PASS). Attenzione: NON è la tua password di Netlify."; console.log("SMTP_PASS not set. Email not sent. Would have sent to:", emails);
       }
-    } catch(e) {
+    } catch (e: any) {
+      emailError = e.message || String(e);
       console.error("Email sending failed:", e);
     }
 
-    return Response.json({ success: true });
-  } catch (error) {
+    return Response.json({ success: true , emailSent, emailError });
+  } catch (error: any) {
     console.error(error);
     return new Response("Internal Server Error", { status: 500 });
   }

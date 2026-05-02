@@ -13,20 +13,22 @@ export default async (req: Request) => {
     await db.insert(newsletter_subscribers).values({ email }).onConflictDoNothing();
     
     // Send welcome email
+    let emailSent = false;
+    let emailError: string | null = null;
     try {
       const transporter = nodemailer.createTransport({
-        host: Netlify.env.get("SMTP_HOST") || "smtp.gmail.com",
-        port: Number(Netlify.env.get("SMTP_PORT") || 465),
-        secure: true,
+        host: process.env["SMTP_HOST"] || "smtp.gmail.com",
+        port: Number(process.env["SMTP_PORT"] || 587),
+        secure: Number(process.env["SMTP_PORT"] || 587) === 465,
         auth: {
-          user: Netlify.env.get("SMTP_USER") || "newpellet2022@gmail.com",
-          pass: Netlify.env.get("SMTP_PASS") || ""
+          user: process.env["SMTP_USER"] || "newpellet2022@gmail.com",
+          pass: process.env["SMTP_PASS"] || ""
         }
       });
 
-      if (Netlify.env.get("SMTP_PASS")) {
+      if (process.env["SMTP_PASS"]) {
         await transporter.sendMail({
-          from: `"Newpellet" <${Netlify.env.get("SMTP_USER") || "newpellet2022@gmail.com"}>`,
+          from: `"Newpellet" <${process.env["SMTP_USER"] || "newpellet2022@gmail.com"}>`,
           to: email,
           subject: "Iscrizione Newsletter Newpellet",
           html: `<p>Ciao!</p>
@@ -35,15 +37,18 @@ export default async (req: Request) => {
                  <br>
                  <p>A presto,<br>Il team di Newpellet</p>`
         });
+        emailSent = true;
       } else {
+        emailError = "SMTP_PASS non configurato nelle variabili d'ambiente di Netlify.";
         console.log("SMTP_PASS not set. Newsletter welcome email not sent.");
       }
-    } catch (e) {
+    } catch (e: any) {
+      emailError = e.message || String(e);
       console.error("Newsletter welcome email sending failed:", e);
     }
 
-    return Response.json({ success: true });
-  } catch (error) {
+    return Response.json({ success: true , emailSent, emailError });
+  } catch (error: any) {
     console.error(error);
     return new Response("Internal Server Error", { status: 500 });
   }
