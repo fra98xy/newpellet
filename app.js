@@ -182,9 +182,33 @@ async function enableNotifications(){
     tag:"newpellet-offerte"
   });
 
-  // Per notifiche reali anche ad app chiusa serve inviare la subscription al server.
   if("PushManager" in window){
-    console.log("PushManager disponibile. Configura VAPID nel backend server-push.");
+    try {
+      const res = await fetch('/.netlify/functions/vapid-public-key');
+      const { publicKey } = await res.json();
+      
+      const padding = '='.repeat((4 - publicKey.length % 4) % 4);
+      const base64 = (publicKey + padding).replace(/\-/g, '+').replace(/_/g, '/');
+      const rawData = window.atob(base64);
+      const outputArray = new Uint8Array(rawData.length);
+      for (let i = 0; i < rawData.length; ++i) {
+        outputArray[i] = rawData.charCodeAt(i);
+      }
+      
+      const subscription = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: outputArray
+      });
+      
+      await fetch('/.netlify/functions/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(subscription)
+      });
+      console.log("Iscrizione Push inviata con successo");
+    } catch(e) {
+      console.error("Errore configurazione Push", e);
+    }
   }
 }
 
