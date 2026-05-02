@@ -1,6 +1,6 @@
-const CACHE_NAME = "newpellet-pwa-v2";
+const CACHE_NAME = "newpellet-pwa-v3";
 const ASSETS = [
-  "./",
+  "/",
   "index.html",
   "styles.css",
   "app.js",
@@ -9,7 +9,8 @@ const ASSETS = [
   "assets/icon-512.png",
   "assets/pellet-abete-bianco.jpg",
   "assets/pellet-abete-rosso.jpg",
-  "assets/pellet-misto.jpg"
+  "assets/pellet-misto.jpg",
+  "assets/richwood-abete-lettonia.png"
 ];
 
 self.addEventListener("install", event => {
