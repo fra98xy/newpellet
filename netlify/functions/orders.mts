@@ -3,17 +3,48 @@ import { db } from "../../db/index.js";
 import { orders } from "../../db/schema.js";
 import nodemailer from "nodemailer";
 
+const STORE_EMAIL = "newpellet2022@gmail.com";
+
+function escapeHtml(value: unknown) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function formatCurrency(value: unknown) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return escapeHtml(value);
+  return number.toLocaleString("it-IT", { style: "currency", currency: "EUR" });
+}
+
+function isValidEmail(value: unknown) {
+  return typeof value === "string" && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
+}
+
 export default async (req: Request) => {
   if (req.method !== "POST") return new Response("Method not allowed", { status: 405 });
 
   try {
-    const { name, email, address, notes, cart, cartDetails, total, isOver80, rawTotal } = await req.json();
+    const { name, email, address, notes, cart, cartDetails, total, isOver80 } = await req.json();
+
+    const customerName = String(name || "").trim();
+    const customerEmail = String(email || "").trim();
+    const customerAddress = String(address || "").trim();
+    const customerNotes = String(notes || "").trim();
+    const subjectCustomerName = customerName.replace(/[\r\n]+/g, " ").slice(0, 120);
+
+    if (!customerName || !customerAddress || !isValidEmail(customerEmail) || !Array.isArray(cart) || cart.length === 0) {
+      return new Response("Missing or invalid order fields", { status: 400 });
+    }
 
     const [order] = await db.insert(orders).values({
-      customerName: name,
-      customerEmail: email,
-      customerAddress: address,
-      customerNotes: notes,
+      customerName,
+      customerEmail,
+      customerAddress,
+      customerNotes,
       cartData: cart,
       totalPrice: total,
       distanceOver80km: isOver80
@@ -25,18 +56,28 @@ export default async (req: Request) => {
     
     let itemsHtml = '';
     let totalQty = 0;
-    if (cartDetails && Array.isArray(cartDetails)) {
+    if (Array.isArray(cartDetails)) {
       cartDetails.forEach(item => {
-        totalQty += item.qty;
+        const qty = Number(item.qty) || 0;
+        totalQty += qty;
         itemsHtml += `
           <tr>
-            <td style="padding: 10px; border-bottom: 1px solid #ddd;">${item.name}</td>
-            <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: center;">${item.qty} ${item.unit}</td>
-            <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">€ ${item.price.toFixed(2).replace('.', ',')}</td>
-            <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">€ ${item.total.toFixed(2).replace('.', ',')}</td>
+            <td style="padding: 10px; border-bottom: 1px solid #ddd;">${escapeHtml(item.name)}</td>
+            <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: center;">${escapeHtml(qty)} ${escapeHtml(item.unit)}</td>
+            <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">${formatCurrency(item.price)}</td>
+            <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">${formatCurrency(item.total)}</td>
           </tr>
         `;
       });
+    }
+
+    if (!itemsHtml) {
+      itemsHtml = `
+        <tr>
+          <td colspan="4" style="padding: 10px; border-bottom: 1px solid #ddd;">Dettagli prodotti presenti nell'ordine salvato.</td>
+        </tr>
+      `;
+      totalQty = Array.isArray(cart) ? cart.reduce((sum, item) => sum + (Number(item.qty) || 0), 0) : 0;
     }
 
     const shippingCost = isOver80 ? (totalQty * 15) : 0;
@@ -88,16 +129,16 @@ export default async (req: Request) => {
               <p>
                 <strong>Newpellet</strong><br>
                 Cona (VE)<br>
-                Email: newpellet2022@gmail.com
+                Email: ${STORE_EMAIL}
               </p>
             </div>
             <div class="customer-details">
               <h3>Destinatario</h3>
               <p>
-                <strong>${name}</strong><br>
-                ${address}<br>
-                Email: ${email || 'Non specificata'}<br>
-                Note: ${notes || 'Nessuna nota'}
+                <strong>${escapeHtml(customerName)}</strong><br>
+                ${escapeHtml(customerAddress)}<br>
+                Email: ${escapeHtml(customerEmail)}<br>
+                Note: ${escapeHtml(customerNotes || 'Nessuna nota')}
               </p>
             </div>
           </div>
@@ -115,7 +156,7 @@ export default async (req: Request) => {
               ${itemsHtml}
               <tr class="total-row">
                 <td colspan="3" style="padding: 15px 10px; text-align: right;">Totale Ordine</td>
-                <td style="padding: 15px 10px; text-align: right;">${total}</td>
+                <td style="padding: 15px 10px; text-align: right;">${escapeHtml(total)}</td>
               </tr>
             </tbody>
           </table>
@@ -131,52 +172,74 @@ export default async (req: Request) => {
 
     // Send emails
     let emailSent = false;
+    let ownerEmailSent = false;
+    let customerEmailSent = false;
     let emailError: string | null = null;
     try {
+      const smtpUser = process.env["SMTP_USER"] || STORE_EMAIL;
+      const smtpPass = process.env["SMTP_PASS"] || "";
       const transporter = nodemailer.createTransport({
         host: process.env["SMTP_HOST"] || "smtp.gmail.com",
         port: Number(process.env["SMTP_PORT"] || 587),
         secure: Number(process.env["SMTP_PORT"] || 587) === 465,
         auth: {
-          user: process.env["SMTP_USER"] || "newpellet2022@gmail.com",
-          pass: process.env["SMTP_PASS"] || ""
+          user: smtpUser,
+          pass: smtpPass
         }
       });
 
-      if (process.env["SMTP_PASS"]) {
-        const mailOptions = {
-          from: `"Newpellet Orders" <${process.env["SMTP_USER"] || "newpellet2022@gmail.com"}>`,
-          to: ["newpellet2022@gmail.com", email].filter(Boolean).join(", "),
-          subject: `Conferma Ordine #${orderId} - Newpellet`,
-          html: `<p>Gentile ${name},</p>
-                 <p>Grazie per il tuo ordine! Abbiamo ricevuto la tua richiesta e stiamo elaborando la spedizione.</p>
-                 <p>In allegato trovi la bolla di trasporto con il riepilogo del tuo ordine.</p>
-                 <br>
-                 <p>Dettagli rapidi:</p>
-                 <ul>
-                   <li><strong>Totale indicativo:</strong> ${total}</li>
-                   <li><strong>Indirizzo:</strong> ${address}</li>
-                 </ul>
-                 <p>A presto,<br>Il team di Newpellet</p>`,
-          attachments: [
-            {
-              filename: `Bolla_Trasporto_Ordine_${orderId}.html`,
-              content: bollaHtml,
-              contentType: 'text/html'
-            }
-          ]
+      if (smtpPass) {
+        const attachment = {
+          filename: `Bolla_Trasporto_Ordine_${orderId}.html`,
+          content: bollaHtml,
+          contentType: "text/html"
         };
-        await transporter.sendMail(mailOptions);
-        emailSent = true;
+
+        await transporter.sendMail({
+          from: `"Newpellet Ordini" <${smtpUser}>`,
+          to: STORE_EMAIL,
+          replyTo: customerEmail,
+          subject: `Nuovo ordine #${orderId} - ${subjectCustomerName}`,
+          html: `<p>Nuovo ordine ricevuto dal sito Newpellet.</p>
+                 <ul>
+                   <li><strong>Cliente:</strong> ${escapeHtml(customerName)}</li>
+                   <li><strong>Email:</strong> ${escapeHtml(customerEmail)}</li>
+                   <li><strong>Indirizzo:</strong> ${escapeHtml(customerAddress)}</li>
+                   <li><strong>Totale indicativo:</strong> ${escapeHtml(total)}</li>
+                   <li><strong>Distanza oltre 80 km:</strong> ${isOver80 ? "Sì" : "No"}</li>
+                   <li><strong>Note:</strong> ${escapeHtml(customerNotes || "Nessuna nota")}</li>
+                 </ul>
+                 <p>La bolla di trasporto / conferma ordine è allegata.</p>`,
+          attachments: [attachment]
+        });
+        ownerEmailSent = true;
+
+        await transporter.sendMail({
+          from: `"Newpellet" <${smtpUser}>`,
+          to: customerEmail,
+          subject: `Conferma ordine #${orderId} - Newpellet`,
+          html: `<p>Gentile ${escapeHtml(customerName)},</p>
+                 <p>grazie per il tuo ordine. Newpellet ha ricevuto la richiesta e confermerà disponibilità e consegna.</p>
+                 <p>In allegato trovi la bolla di trasporto con il riepilogo dell'ordine.</p>
+                 <ul>
+                   <li><strong>Totale indicativo:</strong> ${escapeHtml(total)}</li>
+                   <li><strong>Indirizzo:</strong> ${escapeHtml(customerAddress)}</li>
+                 </ul>
+                 <p>A presto,<br>Newpellet</p>`,
+          attachments: [attachment]
+        });
+        customerEmailSent = true;
+        emailSent = ownerEmailSent && customerEmailSent;
       } else {
-        emailError = "Manca la 'Password per le app' di Google nelle variabili Netlify (SMTP_PASS). Attenzione: NON è la tua password di Netlify né la password normale di Gmail."; console.log("SMTP_PASS not set. Email not sent. Order details:", order);
+        emailError = "Manca la 'Password per le app' di Google nelle variabili Netlify (SMTP_PASS). Attenzione: NON è la tua password di Netlify né la password normale di Gmail.";
+        console.log("SMTP_PASS not set. Order emails not sent.");
       }
     } catch (e: any) {
       emailError = e.message || String(e);
       console.error("Email sending failed:", e);
     }
 
-    return Response.json({ success: true, order , emailSent, emailError });
+    return Response.json({ success: true, order, emailSent, ownerEmailSent, customerEmailSent, emailError });
   } catch (error: any) {
     console.error(error);
     return new Response("Internal Server Error", { status: 500 });
