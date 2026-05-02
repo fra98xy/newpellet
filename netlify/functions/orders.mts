@@ -130,20 +130,22 @@ export default async (req: Request) => {
     `;
 
     // Send emails
+    let emailSent = false;
+    let emailError: string | null = null;
     try {
       const transporter = nodemailer.createTransport({
-        host: Netlify.env.get("SMTP_HOST") || "smtp.gmail.com",
-        port: Number(Netlify.env.get("SMTP_PORT") || 465),
-        secure: true,
+        host: process.env["SMTP_HOST"] || "smtp.gmail.com",
+        port: Number(process.env["SMTP_PORT"] || 587),
+        secure: Number(process.env["SMTP_PORT"] || 587) === 465,
         auth: {
-          user: Netlify.env.get("SMTP_USER") || "newpellet2022@gmail.com",
-          pass: Netlify.env.get("SMTP_PASS") || ""
+          user: process.env["SMTP_USER"] || "newpellet2022@gmail.com",
+          pass: process.env["SMTP_PASS"] || ""
         }
       });
 
-      if (Netlify.env.get("SMTP_PASS")) {
+      if (process.env["SMTP_PASS"]) {
         const mailOptions = {
-          from: `"Newpellet Orders" <${Netlify.env.get("SMTP_USER") || "newpellet2022@gmail.com"}>`,
+          from: `"Newpellet Orders" <${process.env["SMTP_USER"] || "newpellet2022@gmail.com"}>`,
           to: ["newpellet2022@gmail.com", email].filter(Boolean).join(", "),
           subject: `Conferma Ordine #${orderId} - Newpellet`,
           html: `<p>Gentile ${name},</p>
@@ -165,15 +167,17 @@ export default async (req: Request) => {
           ]
         };
         await transporter.sendMail(mailOptions);
+        emailSent = true;
       } else {
-        console.log("SMTP_PASS not set. Email not sent. Order details:", order);
+        emailError = "Manca la 'Password per le app' di Google nelle variabili Netlify (SMTP_PASS). Attenzione: NON è la tua password di Netlify né la password normale di Gmail."; console.log("SMTP_PASS not set. Email not sent. Order details:", order);
       }
-    } catch(e) {
+    } catch (e: any) {
+      emailError = e.message || String(e);
       console.error("Email sending failed:", e);
     }
 
-    return Response.json({ success: true, order });
-  } catch (error) {
+    return Response.json({ success: true, order , emailSent, emailError });
+  } catch (error: any) {
     console.error(error);
     return new Response("Internal Server Error", { status: 500 });
   }

@@ -17,21 +17,23 @@ export default async (req: Request) => {
       problem
     });
 
+    let emailSent = false;
+    let emailError: string | null = null;
     try {
       const transporter = nodemailer.createTransport({
-        host: Netlify.env.get("SMTP_HOST") || "smtp.gmail.com",
-        port: Number(Netlify.env.get("SMTP_PORT") || 465),
-        secure: true,
+        host: process.env["SMTP_HOST"] || "smtp.gmail.com",
+        port: Number(process.env["SMTP_PORT"] || 587),
+        secure: Number(process.env["SMTP_PORT"] || 587) === 465,
         auth: {
-          user: Netlify.env.get("SMTP_USER") || "newpellet2022@gmail.com",
-          pass: Netlify.env.get("SMTP_PASS") || ""
+          user: process.env["SMTP_USER"] || "newpellet2022@gmail.com",
+          pass: process.env["SMTP_PASS"] || ""
         }
       });
 
-      if (Netlify.env.get("SMTP_PASS")) {
+      if (process.env["SMTP_PASS"]) {
         await transporter.sendMail({
-          from: `"Newpellet Assistenza" <${Netlify.env.get("SMTP_USER") || "newpellet2022@gmail.com"}>`,
-          to: Netlify.env.get("SMTP_USER") || "newpellet2022@gmail.com",
+          from: `"Newpellet Assistenza" <${process.env["SMTP_USER"] || "newpellet2022@gmail.com"}>`,
+          to: process.env["SMTP_USER"] || "newpellet2022@gmail.com",
           subject: `Nuova richiesta di assistenza da ${name}`,
           html: `<p>Hai ricevuto una nuova richiesta di assistenza per stufa.</p>
                  <ul>
@@ -40,15 +42,18 @@ export default async (req: Request) => {
                    <li><strong>Problema:</strong> ${problem}</li>
                  </ul>`
         });
+        emailSent = true;
       } else {
+        emailError = "Manca la 'Password per le app' di Google nelle variabili Netlify (SMTP_PASS). Attenzione: NON è la tua password di Netlify.";
         console.log("SMTP_PASS not set. Assistance email not sent.");
       }
-    } catch(e) {
+    } catch (e: any) {
+      emailError = e.message || String(e);
       console.error("Email sending failed:", e);
     }
 
-    return Response.json({ success: true });
-  } catch (error) {
+    return Response.json({ success: true , emailSent, emailError });
+  } catch (error: any) {
     console.error(error);
     return new Response("Internal Server Error", { status: 500 });
   }
