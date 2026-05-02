@@ -187,8 +187,15 @@ async function submitOrder() {
       body: JSON.stringify({ name, email, address, notes, cart, cartDetails, total: euro(total), isOver80, rawTotal: total })
     });
     if(!res.ok) throw new Error("Errore salvataggio ordine");
+    const result = await res.json();
+    if(result.emailSent) {
+      toast("Ordine inviato: email a Newpellet e al cliente.");
+    } else {
+      toast("Ordine salvato. Email non confermata.");
+    }
   } catch(e) {
     console.error(e);
+    toast("Ordine via WhatsApp pronto. Email non confermata.");
   }
 
   // Svuota carrello dopo invio
