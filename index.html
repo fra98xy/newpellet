@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#17351f">
+  <meta name="description" content="Newpellet Logistic - pellet con consegna a domicilio e pagamento alla consegna.">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Newpellet">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="assets/icon-192.png">
+  <link rel="stylesheet" href="styles.css">
+  <title>Newpellet | Ordina pellet veloce</title>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <img src="assets/logo.jpg" alt="Logo Newpellet">
+      <div>
+        <strong>Newpellet</strong>
+        <span>Logistic di Francesco Moretto</span>
+      </div>
+    </div>
+    <button id="installBtn" class="ghost hidden">Installa</button>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="heroText">
+        <p class="eyebrow">Consegna a domicilio • Pagamento alla consegna</p>
+        <h1>Ordina il pellet in pochi secondi</h1>
+        <p>Seleziona uno o più prodotti, scegli quantità e invia l’ordine direttamente su WhatsApp.</p>
+        <div class="heroActions">
+          <a href="#prodotti" class="primary">Vedi prodotti</a>
+          <button id="notifyBtn" class="secondary">Attiva offerte</button>
+        </div>
+      </div>
+      <div class="heroCard">
+        <span>Offerta rapida</span>
+        <strong>Pellet consegnato a casa</strong>
+        <small>Zona Veneto / consegne programmate</small>
+      </div>
+    </section>
+
+    <section class="trust">
+      <div><strong>Pagamento</strong><span>alla consegna</span></div>
+      <div><strong>Ordine</strong><span>via WhatsApp</span></div>
+      <div><strong>App</strong><span>installabile</span></div>
+    </section>
+
+    <section id="prodotti" class="sectionHead">
+      <div>
+        <p class="eyebrow">Catalogo</p>
+        <h2>Prodotti disponibili</h2>
+      </div>
+      <button id="openCartBtn" class="cartButton">Carrello <span id="cartCount">0</span></button>
+    </section>
+
+    <section id="productsGrid" class="grid"></section>
+
+    <section class="subscribe">
+      <h2>Ricevi le nuove offerte pellet</h2>
+      <p>Attiva le notifiche e aggiungi Newpellet alla schermata Home per ricevere aggiornamenti quando ci sono nuove offerte.</p>
+      <button id="notifyBtn2" class="primary">Attiva notifiche offerte</button>
+    </section>
+  </main>
+
+  <nav class="bottomNav">
+    <a href="#prodotti">Prodotti</a>
+    <button id="quickOrderBtn">Ordina ora</button>
+    <a href="tel:+393289361775">Chiama</a>
+  </nav>
+
+  <aside id="cartPanel" class="cartPanel" aria-hidden="true">
+    <div class="cartHeader">
+      <h3>Ordine veloce</h3>
+      <button id="closeCartBtn" class="iconBtn">×</button>
+    </div>
+    <div id="cartItems" class="cartItems"></div>
+    <label class="field">
+      Nome cliente
+      <input id="customerName" placeholder="Es. Mario Rossi">
+    </label>
+    <label class="field">
+      Comune / indirizzo
+      <input id="customerAddress" placeholder="Es. Porto Viro, Via...">
+    </label>
+    <label class="field">
+      Note
+      <textarea id="customerNotes" placeholder="Es. scarico comodo, preferisco mattina..."></textarea>
+    </label>
+    <div class="cartTotal">
+      <span>Totale indicativo</span>
+      <strong id="cartTotal">€ 0,00</strong>
+    </div>
+    <button id="sendWhatsappBtn" class="primary full">Invia ordine su WhatsApp</button>
+    <small class="fineprint">Il prezzo finale viene confermato da Newpellet in base a disponibilità e consegna.</small>
+  </aside>
+
+  <div id="toast" class="toast"></div>
+  <div id="newsletterModal" class="modalOverlay">
+    <div class="modalContent">
+      <button class="closeModal" onclick="closeNewsletterModal()">×</button>
+      <h3>Iscriviti alle Offerte</h3>
+      <p>Lascia la tua email per ricevere le offerte in anteprima e attivare le notifiche sul telefono.</p>
+      <form id="newsletterForm" name="newsletter" method="POST" data-netlify="true">
+        <input type="hidden" name="form-name" value="newsletter" />
+        <input type="text" name="name" placeholder="Il tuo nome" required>
+        <input type="email" name="email" placeholder="La tua email" required>
+        <button type="submit" class="primary">Iscriviti e Attiva Notifiche</button>
+      </form>
+    </div>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>

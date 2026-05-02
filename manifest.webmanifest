@@ -1,0 +1,49 @@
+{
+  "name": "Newpellet Logistic",
+  "short_name": "Newpellet",
+  "description": "Ordina pellet velocemente con consegna a domicilio e pagamento alla consegna.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f6f3ed",
+  "theme_color": "#17351f",
+  "icons": [
+    {
+      "src": "assets/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "assets/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Ordina pellet",
+      "short_name": "Ordina",
+      "url": "./index.html#prodotti",
+      "icons": [
+        {
+          "src": "assets/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Chiama Newpellet",
+      "short_name": "Chiama",
+      "url": "tel:+393289361775",
+      "icons": [
+        {
+          "src": "assets/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ]
+}
