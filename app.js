@@ -2,6 +2,16 @@ const WHATSAPP_NUMBER = "393289361775";
 
 const products = [
   {
+    id:"richwood-abete-lettonia",
+    name:"Richwood Abete Lettonia",
+    description:"Pellet di abete proveniente dalla Lettonia, ottima qualità.",
+    price:6.80,
+    unit:"sacco",
+    pack:"Sacco 15 kg",
+    image:"/.netlify/images?url=/assets/richwood-abete-lettonia.png&w=600&q=80",
+    tags:["15 kg","Abete","Lettonia"]
+  },
+  {
     id:"hitze-pellet",
     name:"Hitze Pellet",
     description:"Pellet di puro abete tedesco, alta resa termica.",
