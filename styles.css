@@ -54,7 +54,7 @@ h2{font-size:28px;margin:0;letter-spacing:-.5px}
 .cartHeader{display:flex;justify-content:space-between;align-items:center}.cartHeader h3{font-size:24px;margin:0}.iconBtn{border:0;background:#eef2ee;border-radius:50%;width:38px;height:38px;font-size:24px}
 .cartLine{display:flex;justify-content:space-between;gap:10px;border-bottom:1px solid #edf1ed;padding:12px 0}
 .cartLine small{color:var(--muted)}.cartLine button{border:0;background:#ffe7e7;color:#9d1d1d;border-radius:10px;padding:7px 9px}
-.field{display:grid;gap:6px;font-weight:800;margin:12px 0}.field input,.field textarea{width:100%;border:1px solid #dfe7df;border-radius:16px;padding:13px;font:inherit}.field textarea{min-height:76px}
+.field{display:grid;gap:6px;font-weight:800;margin:12px 0}.field input,.field textarea,.field select{width:100%;border:1px solid #dfe7df;border-radius:16px;padding:13px;font:inherit;background:white;}.field textarea{min-height:76px}
 .cartTotal{display:flex;justify-content:space-between;align-items:center;margin:16px 0;font-size:17px}.cartTotal strong{font-size:24px;color:var(--green)}
 .full{width:100%;border-radius:18px}.fineprint{display:block;color:var(--muted);text-align:center;margin-top:10px}
 .toast{position:fixed;left:16px;right:16px;bottom:88px;background:#152719;color:white;padding:13px 15px;border-radius:18px;box-shadow:var(--shadow);opacity:0;transform:translateY(12px);transition:.2s;z-index:30}
