@@ -6,7 +6,9 @@ const products = [
     name:"Richwood Abete Lettonia",
     description:"Pellet di abete proveniente dalla Lettonia, ottima qualità.",
     price:6.80,
+    displayPrice: 6.80,
     unit:"sacco",
+    displayUnit: "sacco",
     pack:"Sacco 15 kg",
     image:"/.netlify/images?url=/assets/richwood-abete-lettonia.png&w=600&q=80",
     tags:["15 kg","Abete","Lettonia"]
@@ -16,7 +18,9 @@ const products = [
     name:"Hitze Pellet",
     description:"Pellet di puro abete tedesco, alta resa termica.",
     price:455,
+    displayPrice: 6.50,
     unit:"bancale (70 sacchi)",
+    displayUnit: "sacco",
     pack:"Bancale 70 sacchi",
     image:"/.netlify/images?url=/assets/hitze-pellet.png&w=600&q=80",
     tags:["15 kg","Abete Tedesco","Pagamento alla consegna"]
@@ -26,7 +30,9 @@ const products = [
     name:"Timber Pellet Abete Bianco Tedesco",
     description:"Pellet di abete bianco tedesco Timber, alta qualità per acquisto a sacco.",
     price:6.80,
+    displayPrice: 6.80,
     unit:"sacco",
+    displayUnit: "sacco",
     pack:"Sacco 15 kg",
     image:"/.netlify/images?url=/assets/timber-pellet-abete-bianco-tedesco.png&w=600&q=80",
     tags:["15 kg","Abete Bianco Tedesco","Timber"]
@@ -62,7 +68,7 @@ function renderProducts(){
             <h3>${p.name}</h3>
             <p>${p.description}</p>
           </div>
-          <div class="price">${euro(p.price)}</div>
+          <div class="price">${euro(p.displayPrice || p.price)}/${p.displayUnit || p.unit}</div>
         </div>
         <div class="chips">${p.tags.map(t=>`<span class="chip">${t}</span>`).join("")}</div>
         <p><strong>${p.pack}</strong></p>
@@ -100,8 +106,12 @@ function getCartTotal() {
   
   const distance = $("#customerDistance") ? $("#customerDistance").value : "entro80";
   if (distance === "oltre80") {
-    const totalPallets = cart.reduce((s,item) => s + item.qty, 0);
-    total += totalPallets * 15;
+    let totalPallets = cart.reduce((s,item) => {
+      const p = products.find(x=>x.id===item.id);
+      if (p.unit.includes("bancale")) return s + item.qty;
+      return s + (item.qty / 70);
+    }, 0);
+    total += Math.ceil(totalPallets) * 15;
   }
   return total;
 }
@@ -160,9 +170,18 @@ async function submitOrder() {
     return `• ${p.name}: ${item.qty} ${p.unit} (${euro(p.price)} cad.)`;
   }).join("%0A");
 
+  const shippingCost = (() => {
+    let totalPallets = cart.reduce((s,item) => {
+      const p = products.find(x=>x.id===item.id);
+      if (p.unit.includes("bancale")) return s + item.qty;
+      return s + (item.qty / 70);
+    }, 0);
+    return Math.ceil(totalPallets) * 15;
+  })();
+
   const msg =
 `Ciao Newpellet, vorrei ordinare:%0A${lines}%0A`+
-(isOver80 ? `%0A+ Spedizione (Oltre 80km): ${euro(cart.reduce((s,i)=>s+i.qty,0)*15)}` : ``) +
+(isOver80 ? `%0A+ Spedizione (Oltre 80km): ${euro(shippingCost)}` : ``) +
 `%0ATotale indicativo: ${encodeURIComponent(euro(total))}%0A`+
 `Nome: ${encodeURIComponent(name || "-")}%0A`+
 `Email: ${encodeURIComponent(email || "-")}%0A`+
@@ -291,11 +310,14 @@ document.getElementById("newsletterForm").addEventListener("submit", async (e) =
   e.preventDefault();
   const form = e.target;
   const email = form.querySelector('input[name="email"]').value;
+  const name = form.querySelector('input[name="name"]').value;
+  const surname = form.querySelector('input[name="surname"]').value;
+  const address = form.querySelector('input[name="address"]').value;
   try {
     const response = await fetch("/api/newsletter", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email })
+      body: JSON.stringify({ email, name, surname, address })
     });
     if (response.ok) {
       toast("Iscrizione completata!");
