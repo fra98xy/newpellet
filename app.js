@@ -2,6 +2,16 @@ const WHATSAPP_NUMBER = "393289361775";
 
 const products = [
   {
+    id:"hitze-pellet",
+    name:"Hitze Pellet",
+    description:"Pellet di puro abete tedesco, alta resa termica.",
+    price:6.50,
+    unit:"sacco",
+    pack:"Disponibile a sacchi o bancale",
+    image:"assets/hitze-pellet.png",
+    tags:["15 kg","Abete Tedesco","Pagamento alla consegna"]
+  },
+  {
     id:"abete-bianco",
     name:"Pellet Abete Bianco",
     description:"Ottimo per uso domestico, resa pulita e consegna programmata.",
