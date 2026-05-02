@@ -7,7 +7,7 @@ Base pronta per:
 - ordine via WhatsApp
 - installazione su schermata Home
 - funzionamento offline base
-- predisposizione notifiche offerte con Web Push
+- notifiche offerte tramite Web Push (tramite Netlify Functions)
 
 ## File principali
 
@@ -17,7 +17,7 @@ Base pronta per:
 - `sw.js`: service worker per offline cache e push
 - `manifest.webmanifest`: installazione PWA
 - `assets/`: logo e immagini prodotto placeholder
-- `server-push/`: piccolo backend Node per notifiche push reali
+- `netlify/functions/`: backend serverless per Web Push (iscrizioni e invio)
 
 ## Come sostituire foto e prodotti
 
@@ -41,9 +41,8 @@ Poi metti la foto dentro `assets/`.
 
 ## Pubblicazione
 
-Puoi caricarla su Netlify, Vercel o un hosting HTTPS. Le notifiche push richiedono HTTPS.
+Caricata su Netlify con GitHub. Il backend funziona in modalità serverless tramite Netlify Functions e Blobs (senza necessità di database dedicato).
 
-## Notifiche vere anche ad app chiusa
+## Invio notifiche push (Offerte)
 
-Il pulsante nell'app chiede il permesso e mostra una notifica di test.  
-Per inviare offerte anche quando l'app è chiusa serve collegare il frontend al backend in `server-push/`, generare chiavi VAPID e salvare le subscription degli utenti.
+Puoi inviare notifiche push (offerte) chiamando la function `/.netlify/functions/send-offer` (metodo POST) e inviando il payload desiderato. Le iscrizioni sono gestite automaticamente.
