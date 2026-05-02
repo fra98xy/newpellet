@@ -1,6 +1,9 @@
 import { getStore } from '@netlify/blobs';
 import { getUser } from '@netlify/identity';
 import webpush from 'web-push';
+import { db } from '../../db/index.js';
+import { push_subscriptions } from '../../db/schema.js';
+import { eq } from 'drizzle-orm';
 
 export default async (req: Request) => {
   if (req.method !== 'POST') return new Response('Method Not Allowed', { status: 405 });
@@ -25,8 +28,7 @@ export default async (req: Request) => {
     privateKey
   );
   
-  const subStore = getStore('push-subscriptions');
-  const { blobs } = await subStore.list();
+  const subscriptions = await db.select().from(push_subscriptions);
   
   const pushPayload = JSON.stringify({
     title: payload.title || "Nuova offerta Newpellet",
@@ -35,22 +37,23 @@ export default async (req: Request) => {
   });
   
   let sent = 0;
-  for (const blob of blobs) {
+  for (const sub of subscriptions) {
     try {
-      const sub = await subStore.get(blob.key, { type: 'json' });
-      if (sub) {
-        await webpush.sendNotification(sub as webpush.PushSubscription, pushPayload);
-        sent++;
-      }
+      const pushSub: webpush.PushSubscription = {
+        endpoint: sub.endpoint,
+        keys: sub.keys as { p256dh: string; auth: string }
+      };
+      await webpush.sendNotification(pushSub, pushPayload);
+      sent++;
     } catch (e: any) {
-      console.error(`Error sending to ${blob.key}`, e);
+      console.error(`Error sending to ${sub.endpoint}`, e);
       if (e.statusCode === 410 || e.statusCode === 404) {
-        await subStore.delete(blob.key);
+        await db.delete(push_subscriptions).where(eq(push_subscriptions.id, sub.id));
       }
     }
   }
   
-  return new Response(JSON.stringify({ ok: true, sent, total: blobs.length }), {
+  return new Response(JSON.stringify({ ok: true, sent, total: subscriptions.length }), {
     headers: { 'Content-Type': 'application/json' }
   });
 };
