@@ -5,11 +5,11 @@ const products = [
     id:"richwood-abete-lettonia",
     name:"Richwood Abete Lettonia",
     description:"Pellet di abete proveniente dalla Lettonia, ottima qualità.",
-    price:6.80,
+    price:476,
     displayPrice: 6.80,
-    unit:"sacco",
+    unit:"bancale (70 sacchi)",
     displayUnit: "sacco",
-    pack:"Sacco 15 kg",
+    pack:"Bancale 70 sacchi",
     image:"/.netlify/images?url=/assets/richwood-abete-lettonia.png&w=600&q=80",
     tags:["15 kg","Abete","Lettonia"]
   },
@@ -28,12 +28,12 @@ const products = [
   {
     id:"timber-abete-bianco-tedesco",
     name:"Timber Pellet Abete Bianco Tedesco",
-    description:"Pellet di abete bianco tedesco Timber, alta qualità per acquisto a sacco.",
-    price:6.80,
+    description:"Pellet di abete bianco tedesco Timber, alta qualità.",
+    price:476,
     displayPrice: 6.80,
-    unit:"sacco",
+    unit:"bancale (70 sacchi)",
     displayUnit: "sacco",
-    pack:"Sacco 15 kg",
+    pack:"Bancale 70 sacchi",
     image:"/.netlify/images?url=/assets/timber-pellet-abete-bianco-tedesco.png&w=600&q=80",
     tags:["15 kg","Abete Bianco Tedesco","Timber"]
   }
