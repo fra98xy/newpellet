@@ -143,7 +143,7 @@ export default async (req: Request) => {
 
       if (Netlify.env.get("SMTP_PASS")) {
         const mailOptions = {
-          from: '"Newpellet Orders" <noreply@newpellet.it>',
+          from: `"Newpellet Orders" <${Netlify.env.get("SMTP_USER") || "newpellet2022@gmail.com"}>`,
           to: ["newpellet2022@gmail.com", email].filter(Boolean).join(", "),
           subject: `Conferma Ordine #${orderId} - Newpellet`,
           html: `<p>Gentile ${name},</p>

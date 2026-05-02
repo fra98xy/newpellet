@@ -44,7 +44,7 @@ export default async (req: Request) => {
 
       if (Netlify.env.get("SMTP_PASS")) {
         await transporter.sendMail({
-          from: '"Newpellet Offerte" <noreply@newpellet.it>',
+          from: `"Newpellet Offerte" <${Netlify.env.get("SMTP_USER") || "newpellet2022@gmail.com"}>`,
           bcc: emails.join(","), // send as BCC to protect privacy
           subject: subject,
           html: htmlBody
