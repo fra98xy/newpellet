@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <title>Area Privata Amministratore</title>
+  <style>
+    body { font-family: sans-serif; margin: 0; padding: 20px; background: #f6f3ed; }
+    h1 { color: #17351f; }
+    .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 20px; }
+    input, textarea { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+    button { padding: 10px 20px; background: #17351f; color: white; border: none; border-radius: 4px; cursor: pointer; }
+    button:hover { background: #1f7a3b; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { padding: 10px; border: 1px solid #ddd; text-align: left; }
+    th { background: #f9f9f9; }
+  </style>
+</head>
+<body>
+  <div style="display: flex; justify-content: space-between; align-items: center;">
+    <h1>Area Privata</h1>
+    <button id="logoutBtn">Esci</button>
+  </div>
+
+  <div class="card">
+    <h2>Invia Newsletter</h2>
+    <form id="newsletterForm">
+      <input type="text" id="nlSubject" placeholder="Oggetto dell'email" required>
+      <input type="url" id="nlImage" placeholder="URL Immagine (opzionale)">
+      <input type="url" id="nlLink" placeholder="Link (opzionale)">
+      <textarea id="nlBody" rows="5" placeholder="Testo dell'email..." required></textarea>
+      <button type="submit">Invia a tutti gli iscritti</button>
+    </form>
+    <p id="nlMsg"></p>
+  </div>
+
+  <div class="card">
+    <h2>Iscritti Newsletter</h2>
+    <table id="subsTable">
+      <tr><th>Email</th><th>Data Iscrizione</th></tr>
+    </table>
+  </div>
+  
+  <div class="card">
+    <h2>Ultimi Ordini</h2>
+    <table id="ordersTable">
+      <tr><th>Cliente</th><th>Indirizzo</th><th>Totale</th><th>Data</th></tr>
+    </table>
+  </div>
+  
+  <div class="card">
+    <h2>Richieste Assistenza Stufa</h2>
+    <table id="assistenzaTable">
+      <tr><th>Nome</th><th>Telefono</th><th>Problema</th><th>Data</th></tr>
+    </table>
+  </div>
+
+  <script type="module">
+    import { logout } from 'https://esm.sh/@netlify/identity';
+    
+    document.getElementById('logoutBtn').addEventListener('click', async () => {
+      await logout();
+      window.location.href = '/';
+    });
+
+    async function fetchData() {
+      try {
+        const res = await fetch('/api/admin-data');
+        const data = await res.json();
+        
+        // Iscritti
+        const subsTable = document.getElementById('subsTable');
+        data.subscribers.forEach(sub => {
+          subsTable.innerHTML += `<tr><td>${sub.email}</td><td>${new Date(sub.createdAt).toLocaleString()}</td></tr>`;
+        });
+        
+        // Ordini
+        const ordersTable = document.getElementById('ordersTable');
+        data.orders.forEach(ord => {
+          ordersTable.innerHTML += `<tr><td>${ord.customerName}</td><td>${ord.customerAddress}</td><td>${ord.totalPrice}</td><td>${new Date(ord.createdAt).toLocaleString()}</td></tr>`;
+        });
+        
+        // Assistenza
+        const assTable = document.getElementById('assistenzaTable');
+        data.assistances.forEach(ass => {
+          assTable.innerHTML += `<tr><td>${ass.name}</td><td>${ass.phone}</td><td>${ass.problem}</td><td>${new Date(ass.createdAt).toLocaleString()}</td></tr>`;
+        });
+      } catch(e) {
+        console.error("Errore caricamento dati:", e);
+      }
+    }
+    
+    fetchData();
+
+    document.getElementById('newsletterForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const subject = document.getElementById('nlSubject').value;
+      const image = document.getElementById('nlImage').value;
+      const link = document.getElementById('nlLink').value;
+      const body = document.getElementById('nlBody').value;
+      document.getElementById('nlMsg').textContent = "Invio in corso...";
+      
+      try {
+        const res = await fetch('/api/send-newsletter', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ subject, image, link, body })
+        });
+        if(res.ok) {
+          document.getElementById('nlMsg').textContent = "Inviata con successo!";
+          e.target.reset();
+        } else {
+          document.getElementById('nlMsg').textContent = "Errore durante l'invio.";
+        }
+      } catch(err) {
+        document.getElementById('nlMsg').textContent = "Errore di rete.";
+      }
+    });
+  </script>
+</body>
+</html>

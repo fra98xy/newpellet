@@ -5,40 +5,40 @@ const products = [
     id:"hitze-pellet",
     name:"Hitze Pellet",
     description:"Pellet di puro abete tedesco, alta resa termica.",
-    price:6.50,
-    unit:"sacco",
-    pack:"Disponibile a sacchi o bancale",
-    image:"assets/hitze-pellet.png",
+    price:455,
+    unit:"bancale (70 sacchi)",
+    pack:"Bancale 70 sacchi",
+    image:"/.netlify/images?url=/assets/hitze-pellet.png&w=600&q=80",
     tags:["15 kg","Abete Tedesco","Pagamento alla consegna"]
   },
   {
     id:"abete-bianco",
     name:"Pellet Abete Bianco",
     description:"Ottimo per uso domestico, resa pulita e consegna programmata.",
-    price:6.50,
-    unit:"sacco",
-    pack:"Bancale 65 sacchi",
-    image:"assets/pellet-abete-bianco.jpg",
+    price:455,
+    unit:"bancale (70 sacchi)",
+    pack:"Bancale 70 sacchi",
+    image:"/.netlify/images?url=/assets/pellet-abete-bianco.jpg&w=600&q=80",
     tags:["15 kg","ENplus A1","Pagamento alla consegna"]
   },
   {
     id:"abete-rosso",
     name:"Pellet Abete Rosso",
     description:"Prodotto premium, ideale per chi cerca qualità e continuità.",
-    price:7.20,
-    unit:"sacco",
-    pack:"Bancale 72 sacchi",
-    image:"assets/pellet-abete-rosso.jpg",
+    price:504,
+    unit:"bancale (70 sacchi)",
+    pack:"Bancale 70 sacchi",
+    image:"/.netlify/images?url=/assets/pellet-abete-rosso.jpg&w=600&q=80",
     tags:["15 kg","Alta resa","Offerta bancale"]
   },
   {
     id:"misto-faggio",
     name:"Pellet Misto Faggio",
     description:"Soluzione conveniente per riscaldamento quotidiano.",
-    price:6.20,
-    unit:"sacco",
-    pack:"Disponibile a sacchi o bancale",
-    image:"assets/pellet-misto.jpg",
+    price:434,
+    unit:"bancale (70 sacchi)",
+    pack:"Bancale 70 sacchi",
+    image:"/.netlify/images?url=/assets/pellet-misto.jpg&w=600&q=80",
     tags:["15 kg","Conveniente","Consegna casa"]
   }
 ];
@@ -102,6 +102,20 @@ window.addToCart = function(id){
   toast(`${p.name} aggiunto all’ordine`);
 }
 
+function getCartTotal() {
+  let total = cart.reduce((s,item)=>{
+    const p = products.find(x=>x.id===item.id);
+    return s + item.qty * p.price;
+  },0);
+  
+  const distance = $("#customerDistance") ? $("#customerDistance").value : "entro80";
+  if (distance === "oltre80") {
+    const totalPallets = cart.reduce((s,item) => s + item.qty, 0);
+    total += totalPallets * 15;
+  }
+  return total;
+}
+
 function renderCart(){
   $("#cartCount").textContent = cart.reduce((s,i)=>s+i.qty,0);
   const items = $("#cartItems");
@@ -116,11 +130,7 @@ function renderCart(){
       </div>`;
     }).join("");
   }
-  const total = cart.reduce((s,item)=>{
-    const p = products.find(x=>x.id===item.id);
-    return s + item.qty * p.price;
-  },0);
-  $("#cartTotal").textContent = euro(total);
+  $("#cartTotal").textContent = euro(getCartTotal());
 }
 
 window.removeFromCart = function(id){
@@ -131,29 +141,45 @@ window.removeFromCart = function(id){
 function openCart(){ $("#cartPanel").classList.add("open"); $("#cartPanel").setAttribute("aria-hidden","false"); }
 function closeCart(){ $("#cartPanel").classList.remove("open"); $("#cartPanel").setAttribute("aria-hidden","true"); }
 
-function sendWhatsapp(){
+async function submitOrder() {
   if(!cart.length){ toast("Seleziona almeno un prodotto"); return; }
   const name = $("#customerName").value.trim();
   const address = $("#customerAddress").value.trim();
   const notes = $("#customerNotes").value.trim();
+  const distance = $("#customerDistance").value;
+
+  if(!name || !address) { toast("Inserisci nome e indirizzo"); return; }
+  
+  const isOver80 = distance === "oltre80";
+  const total = getCartTotal();
 
   const lines = cart.map(item=>{
     const p = products.find(x=>x.id===item.id);
     return `• ${p.name}: ${item.qty} ${p.unit} (${euro(p.price)} cad.)`;
   }).join("%0A");
 
-  const total = cart.reduce((s,item)=>{
-    const p = products.find(x=>x.id===item.id);
-    return s + item.qty * p.price;
-  },0);
-
   const msg =
-`Ciao Newpellet, vorrei ordinare:%0A${lines}%0A%0ATotale indicativo: ${encodeURIComponent(euro(total))}%0A`+
+`Ciao Newpellet, vorrei ordinare:%0A${lines}%0A`+
+(isOver80 ? `%0A+ Spedizione (Oltre 80km): ${euro(cart.reduce((s,i)=>s+i.qty,0)*15)}` : ``) +
+`%0ATotale indicativo: ${encodeURIComponent(euro(total))}%0A`+
 `Nome: ${encodeURIComponent(name || "-")}%0A`+
 `Indirizzo/Comune: ${encodeURIComponent(address || "-")}%0A`+
 `Note: ${encodeURIComponent(notes || "-")}%0A%0A`+
 `Attendo conferma disponibilità e consegna.`;
 
+  try {
+    const res = await fetch("/api/orders", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, address, notes, cart, total: euro(total), isOver80 })
+    });
+    if(!res.ok) throw new Error("Errore salvataggio ordine");
+  } catch(e) {
+    console.error(e);
+  }
+
+  // Svuota carrello dopo invio
+  cart = []; saveCart(); closeCart();
   window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${msg}`, "_blank");
 }
 
@@ -185,27 +211,29 @@ async function enableNotifications(){
   if("PushManager" in window){
     try {
       const res = await fetch('/.netlify/functions/vapid-public-key');
-      const { publicKey } = await res.json();
-      
-      const padding = '='.repeat((4 - publicKey.length % 4) % 4);
-      const base64 = (publicKey + padding).replace(/\-/g, '+').replace(/_/g, '/');
-      const rawData = window.atob(base64);
-      const outputArray = new Uint8Array(rawData.length);
-      for (let i = 0; i < rawData.length; ++i) {
-        outputArray[i] = rawData.charCodeAt(i);
+      if (res.ok) {
+        const { publicKey } = await res.json();
+        
+        const padding = '='.repeat((4 - publicKey.length % 4) % 4);
+        const base64 = (publicKey + padding).replace(/\-/g, '+').replace(/_/g, '/');
+        const rawData = window.atob(base64);
+        const outputArray = new Uint8Array(rawData.length);
+        for (let i = 0; i < rawData.length; ++i) {
+          outputArray[i] = rawData.charCodeAt(i);
+        }
+        
+        const subscription = await reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: outputArray
+        });
+        
+        await fetch('/.netlify/functions/subscribe', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(subscription)
+        });
+        console.log("Iscrizione Push inviata con successo");
       }
-      
-      const subscription = await reg.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: outputArray
-      });
-      
-      await fetch('/.netlify/functions/subscribe', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(subscription)
-      });
-      console.log("Iscrizione Push inviata con successo");
     } catch(e) {
       console.error("Errore configurazione Push", e);
     }
@@ -226,10 +254,14 @@ $("#installBtn").addEventListener("click", async ()=>{
   $("#installBtn").classList.add("hidden");
 });
 
+if($("#customerDistance")) {
+  $("#customerDistance").addEventListener("change", renderCart);
+}
+
 $("#openCartBtn").addEventListener("click", openCart);
 $("#quickOrderBtn").addEventListener("click", openCart);
 $("#closeCartBtn").addEventListener("click", closeCart);
-$("#sendWhatsappBtn").addEventListener("click", sendWhatsapp);
+$("#sendWhatsappBtn").addEventListener("click", submitOrder);
 $("#notifyBtn").addEventListener("click", openNewsletterModal);
 $("#notifyBtn2").addEventListener("click", openNewsletterModal);
 
@@ -248,21 +280,55 @@ function openNewsletterModal() {
 document.getElementById("newsletterForm").addEventListener("submit", async (e) => {
   e.preventDefault();
   const form = e.target;
+  const email = form.querySelector('input[name="email"]').value;
   try {
-    const response = await fetch("/", {
+    const response = await fetch("/api/newsletter", {
       method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams(new FormData(form)).toString(),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email })
     });
     if (response.ok) {
       toast("Iscrizione completata!");
       closeNewsletterModal();
-      // Now enable notifications
       await enableNotifications();
     } else {
-      toast("Errore durante l'iscrizione.");
+      toast("Errore o email già iscritta.");
     }
   } catch (error) {
     toast("Errore di rete.");
   }
 });
+
+// Assistenza Stufa
+window.openAssistenzaModal = function() {
+  document.getElementById("assistenzaModal").classList.add("active");
+}
+window.closeAssistenzaModal = function() {
+  document.getElementById("assistenzaModal").classList.remove("active");
+}
+
+if(document.getElementById("assistenzaForm")) {
+  document.getElementById("assistenzaForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const name = document.getElementById("assistenzaName").value;
+    const phone = document.getElementById("assistenzaPhone").value;
+    const problem = document.getElementById("assistenzaProblem").value;
+    
+    try {
+      const response = await fetch("/api/assistenza", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, phone, problem })
+      });
+      if(response.ok) {
+        toast("Richiesta inviata! Ti contatteremo presto.");
+        closeAssistenzaModal();
+        e.target.reset();
+      } else {
+        toast("Errore nell'invio della richiesta.");
+      }
+    } catch(e) {
+      toast("Errore di rete.");
+    }
+  });
+}
