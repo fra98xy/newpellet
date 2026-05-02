@@ -12,6 +12,16 @@ const products = [
     tags:["15 kg","Abete Tedesco","Pagamento alla consegna"]
   },
   {
+    id:"timber-abete-tedesco",
+    name:"Timber Pellet Abete Tedesco",
+    description:"Pellet di abete tedesco Timber, pratico per acquisto a sacco.",
+    price:6.80,
+    unit:"sacco",
+    pack:"Sacco 15 kg",
+    image:"/.netlify/images?url=/assets/pellet-abete-bianco.jpg&w=600&q=80",
+    tags:["15 kg","Abete Tedesco","Timber"]
+  },
+  {
     id:"abete-bianco",
     name:"Pellet Abete Bianco",
     description:"Ottimo per uso domestico, resa pulita e consegna programmata.",
