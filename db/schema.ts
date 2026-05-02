@@ -9,6 +9,7 @@ export const newsletter_subscribers = pgTable("newsletter_subscribers", {
 export const orders = pgTable("orders", {
   id: serial().primaryKey(),
   customerName: text("customer_name").notNull(),
+  customerEmail: text("customer_email"),
   customerAddress: text("customer_address").notNull(),
   customerNotes: text("customer_notes"),
   cartData: jsonb("cart_data").notNull(),
