@@ -22,6 +22,16 @@
   </div>
 
   <div class="card">
+    <h2>Invia Notifica Web Push (App Cliente)</h2>
+    <form id="pushForm">
+      <input type="text" id="pushTitle" placeholder="Titolo Notifica (es. Offerta Pellet Mario)" required>
+      <textarea id="pushBody" rows="3" placeholder="Testo della notifica..." required></textarea>
+      <button type="submit">Invia Notifica a tutti i dispositivi</button>
+    </form>
+    <p id="pushMsg"></p>
+  </div>
+
+  <div class="card">
     
     <h2>Test Configurazione Email (SMTP)</h2>
     <div style="background: #f9f9f9; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
@@ -66,7 +76,7 @@
   <div class="card">
     <h2>Iscritti Newsletter</h2>
     <table id="subsTable">
-      <tr><th>Email</th><th>Data Iscrizione</th></tr>
+      <tr><th>Email</th><th>Nome</th><th>Cognome</th><th>Indirizzo</th><th>Data Iscrizione</th></tr>
     </table>
   </div>
   
@@ -100,7 +110,7 @@
         // Iscritti
         const subsTable = document.getElementById('subsTable');
         data.subscribers.forEach(sub => {
-          subsTable.innerHTML += `<tr><td>${sub.email}</td><td>${new Date(sub.createdAt).toLocaleString()}</td></tr>`;
+          subsTable.innerHTML += `<tr><td>${sub.email}</td><td>${sub.name || '-'}</td><td>${sub.surname || '-'}</td><td>${sub.address || '-'}</td><td>${new Date(sub.createdAt).toLocaleString()}</td></tr>`;
         });
         
         // Ordini
@@ -143,6 +153,30 @@
         }
       } catch(err) {
         document.getElementById('nlMsg').textContent = "Errore di rete.";
+      }
+    });
+
+    document.getElementById('pushForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const title = document.getElementById('pushTitle').value;
+      const bodyText = document.getElementById('pushBody').value;
+      document.getElementById('pushMsg').textContent = "Invio notifica in corso...";
+      
+      try {
+        const res = await fetch('/.netlify/functions/send-offer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title, body: bodyText, url: '/' })
+        });
+        const data = await res.json();
+        if(res.ok) {
+          document.getElementById('pushMsg').textContent = `Notifica inviata a ${data.sent} dispositivi.`;
+          e.target.reset();
+        } else {
+          document.getElementById('pushMsg').textContent = "Errore: " + (data.error || "Impossibile inviare.");
+        }
+      } catch(err) {
+        document.getElementById('pushMsg').textContent = "Errore di rete.";
       }
     });
   </script>

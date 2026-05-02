@@ -7,10 +7,10 @@ export default async (req: Request) => {
   if (req.method !== "POST") return new Response("Method not allowed", { status: 405 });
 
   try {
-    const { email } = await req.json();
+    const { email, name, surname, address } = await req.json();
     if (!email) return new Response("Missing email", { status: 400 });
 
-    await db.insert(newsletter_subscribers).values({ email }).onConflictDoNothing();
+    await db.insert(newsletter_subscribers).values({ email, name, surname, address }).onConflictDoNothing();
     
     // Send welcome email
     let emailSent = false;

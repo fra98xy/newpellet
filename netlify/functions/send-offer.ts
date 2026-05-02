@@ -1,9 +1,15 @@
 import { getStore } from '@netlify/blobs';
+import { getUser } from '@netlify/identity';
 import webpush from 'web-push';
 
 export default async (req: Request) => {
   if (req.method !== 'POST') return new Response('Method Not Allowed', { status: 405 });
   
+  const user = await getUser();
+  if (!user || !user.app_metadata?.roles?.includes('admin')) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+  }
+
   const payload = await req.json();
   const configStore = getStore('push-config');
   const publicKey = await configStore.get('vapidPublicKey');

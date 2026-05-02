@@ -80,7 +80,21 @@ export default async (req: Request) => {
       totalQty = Array.isArray(cart) ? cart.reduce((sum, item) => sum + (Number(item.qty) || 0), 0) : 0;
     }
 
-    const shippingCost = isOver80 ? (totalQty * 15) : 0;
+    let totalPallets = 0;
+    if (Array.isArray(cartDetails)) {
+      cartDetails.forEach(item => {
+        const qty = Number(item.qty) || 0;
+        if (String(item.unit).includes("bancale")) {
+          totalPallets += qty;
+        } else {
+          totalPallets += (qty / 70);
+        }
+      });
+    } else {
+      totalPallets = totalQty; // Fallback
+    }
+
+    const shippingCost = isOver80 ? (Math.ceil(totalPallets) * 15) : 0;
     if (isOver80) {
       itemsHtml += `
         <tr>

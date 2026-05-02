@@ -3,6 +3,9 @@ import { pgTable, serial, text, timestamp, integer, boolean, jsonb } from "drizz
 export const newsletter_subscribers = pgTable("newsletter_subscribers", {
   id: serial().primaryKey(),
   email: text().notNull().unique(),
+  name: text(),
+  surname: text(),
+  address: text(),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
