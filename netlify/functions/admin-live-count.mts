@@ -1,7 +1,7 @@
 import type { Config } from "@netlify/functions";
 import { getUser } from "@netlify/identity";
 import { db } from "../../db/index.js";
-import { newsletter_subscribers } from "../../db/schema.js";
+import { newsletter_subscribers, push_subscriptions } from "../../db/schema.js";
 import { count } from "drizzle-orm";
 
 export default async (req: Request) => {
@@ -16,8 +16,10 @@ export default async (req: Request) => {
 
   try {
     const totalSubscribersResult = await db.select({ value: count() }).from(newsletter_subscribers);
+    const totalAppDownloadsResult = await db.select({ value: count() }).from(push_subscriptions);
     return Response.json({
       totalSubscribers: totalSubscribersResult[0].value,
+      totalAppDownloads: totalAppDownloadsResult[0].value,
     });
   } catch (error) {
     console.error(error);

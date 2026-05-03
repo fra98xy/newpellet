@@ -21,10 +21,17 @@
     <button id="logoutBtn">Esci</button>
   </div>
 
-  <div class="card" style="text-align: center; background-color: #eaf5eb; border: 2px solid #17351f;">
-    <h2 style="margin-top: 0; color: #17351f;">Contatore Live Iscritti</h2>
-    <div style="font-size: 48px; font-weight: bold; color: #1f7a3b;" id="liveCounterVal">0</div>
-    <div style="font-size: 14px; color: #666;">Aggiornato in tempo reale</div>
+  <div class="card" style="text-align: center; background-color: #eaf5eb; border: 2px solid #17351f; display: flex; justify-content: space-around;">
+    <div>
+      <h2 style="margin-top: 0; color: #17351f;">Iscritti Newsletter</h2>
+      <div style="font-size: 48px; font-weight: bold; color: #1f7a3b;" id="liveCounterVal">0</div>
+      <div style="font-size: 14px; color: #666;">Aggiornato in tempo reale</div>
+    </div>
+    <div>
+      <h2 style="margin-top: 0; color: #17351f;">App Scaricate (Notifiche)</h2>
+      <div style="font-size: 48px; font-weight: bold; color: #1f7a3b;" id="liveAppCounterVal">0</div>
+      <div style="font-size: 14px; color: #666;">Aggiornato in tempo reale</div>
+    </div>
   </div>
 
   <div class="card">
@@ -120,10 +127,13 @@
         }
         const data = await res.json();
         
-        // Iscritti
+        // Iscritti e App
         if (data.totalSubscribers !== undefined) {
           document.getElementById('totalSubscribersCount').textContent = data.totalSubscribers;
           document.getElementById('liveCounterVal').textContent = data.totalSubscribers;
+        }
+        if (data.totalAppDownloads !== undefined) {
+          document.getElementById('liveAppCounterVal').textContent = data.totalAppDownloads;
         }
         
         const subsTable = document.getElementById('subsTable');
@@ -157,6 +167,9 @@
           if (data.totalSubscribers !== undefined) {
             document.getElementById('totalSubscribersCount').textContent = data.totalSubscribers;
             document.getElementById('liveCounterVal').textContent = data.totalSubscribers;
+          }
+          if (data.totalAppDownloads !== undefined) {
+            document.getElementById('liveAppCounterVal').textContent = data.totalAppDownloads;
           }
         }
       } catch (e) {
