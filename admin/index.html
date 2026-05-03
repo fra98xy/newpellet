@@ -21,6 +21,12 @@
     <button id="logoutBtn">Esci</button>
   </div>
 
+  <div class="card" style="text-align: center; background-color: #eaf5eb; border: 2px solid #17351f;">
+    <h2 style="margin-top: 0; color: #17351f;">Contatore Live Iscritti</h2>
+    <div style="font-size: 48px; font-weight: bold; color: #1f7a3b;" id="liveCounterVal">0</div>
+    <div style="font-size: 14px; color: #666;">Aggiornato in tempo reale</div>
+  </div>
+
   <div class="card">
     <h2>Invia Notifica Web Push (App Cliente)</h2>
     <form id="pushForm">
@@ -117,6 +123,7 @@
         // Iscritti
         if (data.totalSubscribers !== undefined) {
           document.getElementById('totalSubscribersCount').textContent = data.totalSubscribers;
+          document.getElementById('liveCounterVal').textContent = data.totalSubscribers;
         }
         
         const subsTable = document.getElementById('subsTable');
@@ -141,6 +148,24 @@
     }
     
     fetchData();
+
+    async function fetchLiveCount() {
+      try {
+        const res = await fetch('/api/admin-live-count');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.totalSubscribers !== undefined) {
+            document.getElementById('totalSubscribersCount').textContent = data.totalSubscribers;
+            document.getElementById('liveCounterVal').textContent = data.totalSubscribers;
+          }
+        }
+      } catch (e) {
+        console.error("Errore live count:", e);
+      }
+    }
+    
+    // Aggiorna il contatore ogni 5 secondi
+    setInterval(fetchLiveCount, 5000);
 
     document.getElementById('newsletterForm').addEventListener('submit', async (e) => {
       e.preventDefault();
