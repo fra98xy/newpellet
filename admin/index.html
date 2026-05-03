@@ -98,13 +98,20 @@
     import { logout } from 'https://esm.sh/@netlify/identity';
     
     document.getElementById('logoutBtn').addEventListener('click', async () => {
-      await logout();
-      window.location.href = '/';
+      try {
+        await fetch('/api/admin-logout', { method: 'POST' });
+        await logout();
+      } catch (e) {}
+      window.location.href = '/login.html';
     });
 
     async function fetchData() {
       try {
         const res = await fetch('/api/admin-data');
+        if (res.status === 401) {
+          window.location.href = '/login.html';
+          return;
+        }
         const data = await res.json();
         
         // Iscritti
