@@ -40,8 +40,8 @@ self.addEventListener("push", event => {
   event.waitUntil(
     self.registration.showNotification(data.title || "Newpellet", {
       body: data.body || "Nuova offerta disponibile",
-      icon: "assets/icon-192.png",
-      badge: "assets/icon-192.png",
+      icon: "/assets/icon-192.png",
+      badge: "/assets/icon-192.png",
       data: { url: data.url || "/" },
       tag: "newpellet-offerta"
     })
