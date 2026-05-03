@@ -74,7 +74,7 @@
   </div>
 
   <div class="card">
-    <h2>Iscritti Newsletter</h2>
+    <h2>Iscritti Newsletter (<span id="totalSubscribersCount">0</span>)</h2>
     <table id="subsTable">
       <tr><th>Email</th><th>Nome</th><th>Cognome</th><th>Indirizzo</th><th>Data Iscrizione</th></tr>
     </table>
@@ -115,6 +115,10 @@
         const data = await res.json();
         
         // Iscritti
+        if (data.totalSubscribers !== undefined) {
+          document.getElementById('totalSubscribersCount').textContent = data.totalSubscribers;
+        }
+        
         const subsTable = document.getElementById('subsTable');
         data.subscribers.forEach(sub => {
           subsTable.innerHTML += `<tr><td>${sub.email}</td><td>${sub.name || '-'}</td><td>${sub.surname || '-'}</td><td>${sub.address || '-'}</td><td>${new Date(sub.createdAt).toLocaleString()}</td></tr>`;
