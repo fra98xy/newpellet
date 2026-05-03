@@ -221,12 +221,18 @@ async function registerServiceWorker(){
 
 async function enableNotifications(){
   if(!("Notification" in window)){
-    toast("Notifiche non supportate su questo dispositivo");
+    console.warn("Notifiche non supportate su questo dispositivo");
     return;
   }
-  const permission = await Notification.requestPermission();
+  let permission;
+  try {
+    permission = await Notification.requestPermission();
+  } catch (e) {
+    console.warn("Permesso notifiche negato o impossibile da richiedere:", e);
+    return;
+  }
   if(permission !== "granted"){
-    toast("Notifiche non attivate");
+    console.warn("Notifiche non attivate");
     return;
   }
   const reg = await navigator.serviceWorker.ready;
@@ -283,7 +289,11 @@ $("#installBtn").addEventListener("click", async ()=>{
   if(!deferredPrompt) return;
   
   if("Notification" in window && Notification.permission !== "granted" && Notification.permission !== "denied") {
-    await Notification.requestPermission();
+    try {
+      await Notification.requestPermission();
+    } catch (e) {
+      console.warn(e);
+    }
   }
 
   deferredPrompt.prompt();
@@ -321,10 +331,6 @@ function openNewsletterModal() {
 
 document.getElementById("newsletterForm").addEventListener("submit", async (e) => {
   e.preventDefault();
-  
-  if("Notification" in window && Notification.permission !== "granted" && Notification.permission !== "denied") {
-    await Notification.requestPermission();
-  }
 
   const form = e.target;
   const email = form.querySelector('input[name="email"]').value;
@@ -340,7 +346,11 @@ document.getElementById("newsletterForm").addEventListener("submit", async (e) =
     if (response.ok) {
       toast("Iscrizione completata!");
       closeNewsletterModal();
-      await enableNotifications();
+      try {
+        await enableNotifications();
+      } catch (err) {
+        console.warn("Impossibile attivare le notifiche", err);
+      }
     } else {
       toast("Errore o email già iscritta.");
     }
