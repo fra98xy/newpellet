@@ -152,11 +152,12 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ subject, image, link, body })
         });
-        if(res.ok) {
+        const data = await res.json();
+        if(res.ok && data.success && data.emailSent !== false) {
           document.getElementById('nlMsg').textContent = "Inviata con successo!";
           e.target.reset();
         } else {
-          document.getElementById('nlMsg').textContent = "Errore durante l'invio.";
+          document.getElementById('nlMsg').textContent = "Errore: " + (data.emailError || data.message || "Errore durante l'invio.");
         }
       } catch(err) {
         document.getElementById('nlMsg').textContent = "Errore di rete.";
