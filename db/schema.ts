@@ -28,3 +28,10 @@ export const stove_assistance = pgTable("stove_assistance", {
   problem: text().notNull(),
   createdAt: timestamp("created_at").defaultNow(),
 });
+
+export const push_subscriptions = pgTable("push_subscriptions", {
+  id: serial().primaryKey(),
+  endpoint: text().notNull().unique(),
+  keys: jsonb().notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
