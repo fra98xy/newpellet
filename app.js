@@ -251,10 +251,24 @@ async function enableNotifications(){
           outputArray[i] = rawData.charCodeAt(i);
         }
         
-        const subscription = await reg.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: outputArray
-        });
+        let subscription;
+        try {
+          subscription = await reg.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: outputArray
+          });
+        } catch (subErr) {
+          const existingSub = await reg.pushManager.getSubscription();
+          if (existingSub) {
+            await existingSub.unsubscribe();
+            subscription = await reg.pushManager.subscribe({
+              userVisibleOnly: true,
+              applicationServerKey: outputArray
+            });
+          } else {
+            throw subErr;
+          }
+        }
         
         await fetch('/.netlify/functions/subscribe', {
           method: 'POST',

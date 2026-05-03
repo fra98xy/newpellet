@@ -18,11 +18,15 @@ export default async (req: Request) => {
 
   const payload = await req.json();
   const configStore = getStore('push-config');
-  const publicKey = await configStore.get('vapidPublicKey');
-  const privateKey = await configStore.get('vapidPrivateKey');
+  let publicKey = await configStore.get('vapidPublicKey');
+  let privateKey = await configStore.get('vapidPrivateKey');
   
   if (!publicKey || !privateKey) {
-    return new Response(JSON.stringify({ error: 'VAPID keys not configured' }), { status: 500 });
+    const vapidKeys = webpush.generateVAPIDKeys();
+    await configStore.set('vapidPublicKey', vapidKeys.publicKey);
+    await configStore.set('vapidPrivateKey', vapidKeys.privateKey);
+    publicKey = vapidKeys.publicKey;
+    privateKey = vapidKeys.privateKey;
   }
   
   webpush.setVapidDetails(
@@ -50,7 +54,7 @@ export default async (req: Request) => {
       sent++;
     } catch (e: any) {
       console.error(`Error sending to ${sub.endpoint}`, e);
-      if (e.statusCode === 410 || e.statusCode === 404) {
+      if ([400, 401, 403, 404, 410].includes(e.statusCode)) {
         await db.delete(push_subscriptions).where(eq(push_subscriptions.id, sub.id));
       }
     }
