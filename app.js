@@ -275,12 +275,25 @@ window.addEventListener("beforeinstallprompt", e=>{
   $("#installBtn").classList.remove("hidden");
 });
 
+window.addEventListener("appinstalled", () => {
+  enableNotifications();
+});
+
 $("#installBtn").addEventListener("click", async ()=>{
   if(!deferredPrompt) return;
+  
+  if("Notification" in window && Notification.permission !== "granted" && Notification.permission !== "denied") {
+    await Notification.requestPermission();
+  }
+
   deferredPrompt.prompt();
-  await deferredPrompt.userChoice;
+  const { outcome } = await deferredPrompt.userChoice;
   deferredPrompt = null;
   $("#installBtn").classList.add("hidden");
+  
+  if (outcome === 'accepted') {
+    enableNotifications();
+  }
 });
 
 if($("#customerDistance")) {
@@ -308,6 +321,11 @@ function openNewsletterModal() {
 
 document.getElementById("newsletterForm").addEventListener("submit", async (e) => {
   e.preventDefault();
+  
+  if("Notification" in window && Notification.permission !== "granted" && Notification.permission !== "denied") {
+    await Notification.requestPermission();
+  }
+
   const form = e.target;
   const email = form.querySelector('input[name="email"]').value;
   const name = form.querySelector('input[name="name"]').value;
