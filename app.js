@@ -219,23 +219,26 @@ async function registerServiceWorker(){
   }
 }
 
-async function enableNotifications(){
+async function enableNotifications(silent = false){
   if(!("Notification" in window)){
-    toast("Notifiche non supportate su questo dispositivo");
+    if(!silent) toast("Notifiche non supportate su questo dispositivo");
     return;
   }
   const permission = await Notification.requestPermission();
   if(permission !== "granted"){
-    toast("Notifiche non attivate");
+    if(!silent) toast("Notifiche non attivate");
     return;
   }
   const reg = await navigator.serviceWorker.ready;
-  await reg.showNotification("Newpellet offerte attive", {
-    body:"Riceverai gli aggiornamenti quando saranno disponibili nuove offerte.",
-    icon:"assets/icon-192.png",
-    badge:"assets/icon-192.png",
-    tag:"newpellet-offerte"
-  });
+  
+  if (!silent) {
+    await reg.showNotification("Newpellet offerte attive", {
+      body:"Riceverai gli aggiornamenti quando saranno disponibili nuove offerte.",
+      icon:"/assets/icon-192.png",
+      badge:"/assets/icon-192.png",
+      tag:"newpellet-offerte"
+    });
+  }
 
   if("PushManager" in window){
     try {
@@ -309,7 +312,11 @@ $("#notifyBtn2").addEventListener("click", openNewsletterModal);
 
 renderProducts();
 renderCart();
-registerServiceWorker();
+registerServiceWorker().then(() => {
+  if ("Notification" in window && Notification.permission === "granted") {
+    enableNotifications(true);
+  }
+});
 
 window.closeNewsletterModal = function() {
   document.getElementById("newsletterModal").classList.remove("active");

@@ -17,7 +17,10 @@ export default async (req: Request) => {
         endpoint: subscription.endpoint, 
         keys: subscription.keys 
       })
-      .onConflictDoNothing();
+      .onConflictDoUpdate({
+        target: push_subscriptions.endpoint,
+        set: { keys: subscription.keys }
+      });
       
     const result = await db.select({ count: sql<number>`cast(count(*) as int)` }).from(push_subscriptions);
     const total = result[0]?.count || 0;

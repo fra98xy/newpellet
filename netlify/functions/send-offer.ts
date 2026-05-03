@@ -50,7 +50,7 @@ export default async (req: Request) => {
       sent++;
     } catch (e: any) {
       console.error(`Error sending to ${sub.endpoint}`, e);
-      if (e.statusCode === 410 || e.statusCode === 404) {
+      if (e.statusCode === 410 || e.statusCode === 404 || e.statusCode === 400) {
         await db.delete(push_subscriptions).where(eq(push_subscriptions.id, sub.id));
       }
     }

@@ -27,8 +27,15 @@ self.addEventListener("activate", event => {
 });
 
 self.addEventListener("fetch", event => {
+  if (event.request.method !== "GET" || !event.request.url.startsWith("http")) return;
   event.respondWith(
-    caches.match(event.request).then(cached => cached || fetch(event.request))
+    fetch(event.request)
+      .then(response => {
+        const resClone = response.clone();
+        caches.open(CACHE_NAME).then(cache => cache.put(event.request, resClone));
+        return response;
+      })
+      .catch(() => caches.match(event.request))
   );
 });
 
@@ -40,8 +47,8 @@ self.addEventListener("push", event => {
   event.waitUntil(
     self.registration.showNotification(data.title || "Newpellet", {
       body: data.body || "Nuova offerta disponibile",
-      icon: "assets/icon-192.png",
-      badge: "assets/icon-192.png",
+      icon: "/assets/icon-192.png",
+      badge: "/assets/icon-192.png",
       data: { url: data.url || "/" },
       tag: "newpellet-offerta"
     })
