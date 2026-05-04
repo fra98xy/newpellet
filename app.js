@@ -232,8 +232,8 @@ async function enableNotifications(){
   const reg = await navigator.serviceWorker.ready;
   await reg.showNotification("Newpellet offerte attive", {
     body:"Riceverai gli aggiornamenti quando saranno disponibili nuove offerte.",
-    icon:"assets/icon-192.png",
-    badge:"assets/icon-192.png",
+    icon:"/assets/icon-192.png",
+    badge:"/assets/icon-192.png",
     tag:"newpellet-offerte"
   });
 
