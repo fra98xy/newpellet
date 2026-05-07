@@ -28,27 +28,49 @@ export default async (req: Request) => {
   if (req.method !== "POST") return new Response("Method not allowed", { status: 405 });
 
   try {
-    const { name, email, address, notes, cart, cartDetails, total, isOver80 } = await req.json();
+    const { name, phone, email, subscribe, address, notes, cart, cartDetails, total, isOver80 } = await req.json();
 
     const customerName = String(name || "").trim();
+    const customerPhone = String(phone || "").trim();
     const customerEmail = String(email || "").trim();
     const customerAddress = String(address || "").trim();
     const customerNotes = String(notes || "").trim();
     const subjectCustomerName = customerName.replace(/[\r\n]+/g, " ").slice(0, 120);
 
-    if (!customerName || !customerAddress || !isValidEmail(customerEmail) || !Array.isArray(cart) || cart.length === 0) {
+    if (!customerName || !customerPhone || !customerAddress || !Array.isArray(cart) || cart.length === 0) {
       return new Response("Missing or invalid order fields", { status: 400 });
     }
 
     const [order] = await db.insert(orders).values({
       customerName,
-      customerEmail,
+      customerEmail: customerEmail || null,
+      customerPhone,
       customerAddress,
       customerNotes,
       cartData: cart,
       totalPrice: total,
       distanceOver80km: isOver80
     }).returning();
+
+    // Handle optional newsletter subscription
+    if (subscribe && customerEmail && isValidEmail(customerEmail)) {
+      try {
+        // We need to import newsletter_subscribers if we didn't already, but we can also use fetch to our own endpoint or just insert directly.
+        // For simplicity, we can fetch to the existing /api/newsletter endpoint.
+        await fetch(new URL("/api/newsletter", req.url).toString(), {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: customerEmail,
+            name: customerName,
+            surname: "", // We only have full name from the order
+            address: customerAddress
+          })
+        });
+      } catch (err) {
+        console.error("Failed to subscribe user to newsletter during order:", err);
+      }
+    }
 
     // Create Bolla di Trasporto HTML
     const orderDate = new Date().toLocaleDateString('it-IT');
@@ -151,7 +173,8 @@ export default async (req: Request) => {
               <p>
                 <strong>${escapeHtml(customerName)}</strong><br>
                 ${escapeHtml(customerAddress)}<br>
-                Email: ${escapeHtml(customerEmail)}<br>
+                Telefono: ${escapeHtml(customerPhone)}<br>
+                ${customerEmail ? `Email: ${escapeHtml(customerEmail)}<br>` : ''}
                 Note: ${escapeHtml(customerNotes || 'Nessuna nota')}
               </p>
             </div>
@@ -212,12 +235,13 @@ export default async (req: Request) => {
         await transporter.sendMail({
           from: `"Newpellet Ordini" <${smtpUser}>`,
           to: STORE_EMAIL,
-          replyTo: customerEmail,
+          replyTo: customerEmail || smtpUser,
           subject: `Nuovo ordine #${orderId} - ${subjectCustomerName}`,
           html: `<p>Nuovo ordine ricevuto dal sito Newpellet.</p>
                  <ul>
                    <li><strong>Cliente:</strong> ${escapeHtml(customerName)}</li>
-                   <li><strong>Email:</strong> ${escapeHtml(customerEmail)}</li>
+                   <li><strong>Telefono:</strong> ${escapeHtml(customerPhone)}</li>
+                   ${customerEmail ? `<li><strong>Email:</strong> ${escapeHtml(customerEmail)}</li>` : ''}
                    <li><strong>Indirizzo:</strong> ${escapeHtml(customerAddress)}</li>
                    <li><strong>Totale indicativo:</strong> ${escapeHtml(total)}</li>
                    <li><strong>Distanza oltre 80 km:</strong> ${isOver80 ? "Sì" : "No"}</li>
@@ -228,22 +252,24 @@ export default async (req: Request) => {
         });
         ownerEmailSent = true;
 
-        await transporter.sendMail({
-          from: `"Newpellet" <${smtpUser}>`,
-          to: customerEmail,
-          subject: `Conferma ordine #${orderId} - Newpellet`,
-          html: `<p>Gentile ${escapeHtml(customerName)},</p>
-                 <p>grazie per il tuo ordine. Newpellet ha ricevuto la richiesta e confermerà disponibilità e consegna.</p>
-                 <p>In allegato trovi la bolla di trasporto con il riepilogo dell'ordine.</p>
-                 <ul>
-                   <li><strong>Totale indicativo:</strong> ${escapeHtml(total)}</li>
-                   <li><strong>Indirizzo:</strong> ${escapeHtml(customerAddress)}</li>
-                 </ul>
-                 <p>A presto,<br>Newpellet</p>`,
-          attachments: [attachment]
-        });
-        customerEmailSent = true;
-        emailSent = ownerEmailSent && customerEmailSent;
+        if (customerEmail) {
+          await transporter.sendMail({
+            from: `"Newpellet" <${smtpUser}>`,
+            to: customerEmail,
+            subject: `Conferma ordine #${orderId} - Newpellet`,
+            html: `<p>Gentile ${escapeHtml(customerName)},</p>
+                   <p>grazie per il tuo ordine. Newpellet ha ricevuto la richiesta e confermerà disponibilità e consegna.</p>
+                   <p>In allegato trovi la bolla di trasporto con il riepilogo dell'ordine.</p>
+                   <ul>
+                     <li><strong>Totale indicativo:</strong> ${escapeHtml(total)}</li>
+                     <li><strong>Indirizzo:</strong> ${escapeHtml(customerAddress)}</li>
+                   </ul>
+                   <p>A presto,<br>Newpellet</p>`,
+            attachments: [attachment]
+          });
+          customerEmailSent = true;
+        }
+        emailSent = ownerEmailSent && (!customerEmail || customerEmailSent);
       } else {
         emailError = "Manca la 'Password per le app' di Google nelle variabili Netlify (SMTP_PASS). Attenzione: NON è la tua password di Netlify né la password normale di Gmail.";
         console.log("SMTP_PASS not set. Order emails not sent.");
