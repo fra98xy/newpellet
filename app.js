@@ -144,13 +144,15 @@ function closeCart(){ $("#cartPanel").classList.remove("open"); $("#cartPanel").
 async function submitOrder() {
   if(!cart.length){ toast("Seleziona almeno un prodotto"); return; }
   const name = $("#customerName").value.trim();
+  const phone = $("#customerPhone").value.trim();
   const email = $("#customerEmail").value.trim();
+  const subscribe = $("#newsletterSubscribe").checked;
   const address = $("#customerAddress").value.trim();
   const notes = $("#customerNotes").value.trim();
   const distance = $("#customerDistance").value;
 
-  if(!name || !address || !email) { toast("Inserisci nome, email e indirizzo"); return; }
-  
+  if(!name || !phone || !address) { toast("Inserisci nome, telefono e indirizzo completo"); return; }
+
   const isOver80 = distance === "oltre80";
   const total = getCartTotal();
 
@@ -184,8 +186,9 @@ async function submitOrder() {
 (isOver80 ? `%0A+ Spedizione (Oltre 80km): ${euro(shippingCost)}` : ``) +
 `%0ATotale indicativo: ${encodeURIComponent(euro(total))}%0A`+
 `Nome: ${encodeURIComponent(name || "-")}%0A`+
+`Telefono: ${encodeURIComponent(phone || "-")}%0A`+
 `Email: ${encodeURIComponent(email || "-")}%0A`+
-`Indirizzo/Comune: ${encodeURIComponent(address || "-")}%0A`+
+`Indirizzo completo: ${encodeURIComponent(address || "-")}%0A`+
 `Note: ${encodeURIComponent(notes || "-")}%0A%0A`+
 `Attendo conferma disponibilità e consegna.`;
 
@@ -193,7 +196,7 @@ async function submitOrder() {
     const res = await fetch("/api/orders", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email, address, notes, cart, cartDetails, total: euro(total), isOver80, rawTotal: total })
+      body: JSON.stringify({ name, phone, email, subscribe, address, notes, cart, cartDetails, total: euro(total), isOver80, rawTotal: total })
     });
     if(!res.ok) throw new Error("Errore salvataggio ordine");
     const result = await res.json();
@@ -211,7 +214,6 @@ async function submitOrder() {
   cart = []; saveCart(); closeCart();
   window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${msg}`, "_blank");
 }
-
 async function registerServiceWorker(){
   if("serviceWorker" in navigator){
     try{ await navigator.serviceWorker.register("sw.js"); }
