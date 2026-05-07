@@ -1,4 +1,4 @@
-import { pgTable, serial, text, timestamp, integer, boolean, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, timestamp, boolean, jsonb, index } from "drizzle-orm/pg-core";
 
 export const newsletter_subscribers = pgTable("newsletter_subscribers", {
   id: serial().primaryKey(),
@@ -7,6 +7,11 @@ export const newsletter_subscribers = pgTable("newsletter_subscribers", {
   surname: text(),
   address: text(),
   createdAt: timestamp("created_at").defaultNow(),
+}, (table) => {
+  return {
+    createdAtIndex: index("newsletter_subscribers_created_at_idx").on(table.createdAt),
+    emailIndex: index("newsletter_subscribers_email_idx").on(table.email)
+  };
 });
 
 export const orders = pgTable("orders", {
@@ -19,6 +24,11 @@ export const orders = pgTable("orders", {
   totalPrice: text("total_price").notNull(),
   distanceOver80km: boolean("distance_over_80km").default(false),
   createdAt: timestamp("created_at").defaultNow(),
+}, (table) => {
+  return {
+    createdAtIndex: index("orders_created_at_idx").on(table.createdAt),
+    emailIndex: index("orders_customer_email_idx").on(table.customerEmail)
+  };
 });
 
 export const stove_assistance = pgTable("stove_assistance", {
@@ -27,6 +37,10 @@ export const stove_assistance = pgTable("stove_assistance", {
   phone: text().notNull(),
   problem: text().notNull(),
   createdAt: timestamp("created_at").defaultNow(),
+}, (table) => {
+  return {
+    createdAtIndex: index("stove_assistance_created_at_idx").on(table.createdAt)
+  };
 });
 
 export const push_subscriptions = pgTable("push_subscriptions", {

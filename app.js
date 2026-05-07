@@ -198,9 +198,9 @@ async function submitOrder() {
     if(!res.ok) throw new Error("Errore salvataggio ordine");
     const result = await res.json();
     if(result.emailSent) {
-      toast("Ordine inviato: email a Newpellet e al cliente.");
+      toast("Ordine inviato con successo. Riceverai un'email a breve.");
     } else {
-      toast("Ordine salvato. Email non confermata.");
+      toast("Ordine salvato con successo.");
     }
   } catch(e) {
     console.error(e);
