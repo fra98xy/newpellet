@@ -145,11 +145,12 @@ async function submitOrder() {
   if(!cart.length){ toast("Seleziona almeno un prodotto"); return; }
   const name = $("#customerName").value.trim();
   const email = $("#customerEmail").value.trim();
+  const phone = $("#customerPhone").value.trim();
   const address = $("#customerAddress").value.trim();
   const notes = $("#customerNotes").value.trim();
   const distance = $("#customerDistance").value;
 
-  if(!name || !address || !email) { toast("Inserisci nome, email e indirizzo"); return; }
+  if(!name || !address || !email || !phone) { toast("Inserisci nome, email, telefono e indirizzo (via e paese)"); return; }
   
   const isOver80 = distance === "oltre80";
   const total = getCartTotal();
@@ -182,9 +183,10 @@ async function submitOrder() {
   const msg =
 `Ciao Newpellet, vorrei ordinare:%0A${lines}%0A`+
 (isOver80 ? `%0A+ Spedizione (Oltre 80km): ${euro(shippingCost)}` : ``) +
-`%0ATotale indicativo: ${encodeURIComponent(euro(total))}%0A`+
+`Totale indicativo: ${encodeURIComponent(euro(total))}%0A`+
 `Nome: ${encodeURIComponent(name || "-")}%0A`+
 `Email: ${encodeURIComponent(email || "-")}%0A`+
+`Telefono: ${encodeURIComponent(phone || "-")}%0A`+
 `Indirizzo/Comune: ${encodeURIComponent(address || "-")}%0A`+
 `Note: ${encodeURIComponent(notes || "-")}%0A%0A`+
 `Attendo conferma disponibilità e consegna.`;
@@ -193,7 +195,7 @@ async function submitOrder() {
     const res = await fetch("/api/orders", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email, address, notes, cart, cartDetails, total: euro(total), isOver80, rawTotal: total })
+      body: JSON.stringify({ name, email, phone, address, notes, cart, cartDetails, total: euro(total), isOver80, rawTotal: total })
     });
     if(!res.ok) throw new Error("Errore salvataggio ordine");
     const result = await res.json();

@@ -28,21 +28,23 @@ export default async (req: Request) => {
   if (req.method !== "POST") return new Response("Method not allowed", { status: 405 });
 
   try {
-    const { name, email, address, notes, cart, cartDetails, total, isOver80 } = await req.json();
+    const { name, email, phone, address, notes, cart, cartDetails, total, isOver80 } = await req.json();
 
     const customerName = String(name || "").trim();
     const customerEmail = String(email || "").trim();
+    const customerPhone = String(phone || "").trim();
     const customerAddress = String(address || "").trim();
     const customerNotes = String(notes || "").trim();
     const subjectCustomerName = customerName.replace(/[\r\n]+/g, " ").slice(0, 120);
 
-    if (!customerName || !customerAddress || !isValidEmail(customerEmail) || !Array.isArray(cart) || cart.length === 0) {
+    if (!customerName || !customerAddress || !isValidEmail(customerEmail) || !customerPhone || !Array.isArray(cart) || cart.length === 0) {
       return new Response("Missing or invalid order fields", { status: 400 });
     }
 
     const [order] = await db.insert(orders).values({
       customerName,
       customerEmail,
+      customerPhone,
       customerAddress,
       customerNotes,
       cartData: cart,
@@ -152,6 +154,7 @@ export default async (req: Request) => {
                 <strong>${escapeHtml(customerName)}</strong><br>
                 ${escapeHtml(customerAddress)}<br>
                 Email: ${escapeHtml(customerEmail)}<br>
+                Telefono: ${escapeHtml(customerPhone)}<br>
                 Note: ${escapeHtml(customerNotes || 'Nessuna nota')}
               </p>
             </div>

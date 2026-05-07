@@ -13,6 +13,7 @@ export const orders = pgTable("orders", {
   id: serial().primaryKey(),
   customerName: text("customer_name").notNull(),
   customerEmail: text("customer_email"),
+  customerPhone: text("customer_phone").default("-").notNull(),
   customerAddress: text("customer_address").notNull(),
   customerNotes: text("customer_notes"),
   cartData: jsonb("cart_data").notNull(),
