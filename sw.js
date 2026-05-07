@@ -1,4 +1,4 @@
-const CACHE_NAME = "newpellet-pwa-v4";
+const CACHE_NAME = "newpellet-pwa-v5";
 const ASSETS = [
   "/",
   "index.html",
@@ -37,14 +37,18 @@ self.addEventListener("push", event => {
   if(event.data){
     try { data = event.data.json(); } catch(e){ data.body = event.data.text(); }
   }
+  
+  const options = {
+    body: data.body || "Nuova offerta disponibile",
+    icon: "/assets/icon-192.png",
+    badge: "/assets/icon-192.png",
+    data: { url: data.url || "/" },
+    vibrate: [200, 100, 200, 100, 200, 100, 200],
+    requireInteraction: true
+  };
+  
   event.waitUntil(
-    self.registration.showNotification(data.title || "Newpellet", {
-      body: data.body || "Nuova offerta disponibile",
-      icon: "assets/icon-192.png",
-      badge: "assets/icon-192.png",
-      data: { url: data.url || "/" },
-      tag: "newpellet-offerta"
-    })
+    self.registration.showNotification(data.title || "Newpellet", options)
   );
 });
 

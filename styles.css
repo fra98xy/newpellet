@@ -42,7 +42,8 @@ h2{font-size:28px;margin:0;letter-spacing:-.5px}
 .qtyRow{display:flex;gap:8px;align-items:center;margin-top:16px}
 .qtyRow button{width:42px;height:42px;border-radius:14px;border:0;background:#edf2ed;font-size:20px;font-weight:900}
 .qtyRow input{width:62px;height:42px;border:1px solid #dce5dc;border-radius:14px;text-align:center;font-weight:900}
-.addBtn{flex:1;height:42px;border:0;border-radius:14px;background:var(--green2);color:white;font-weight:900}
+.addBtn{flex:1;height:48px;border:0;border-radius:14px;background:var(--green);color:white;font-weight:900;font-size:16px;box-shadow:0 4px 15px rgba(23,53,31,0.35);text-transform:uppercase;transition:transform 0.2s, background 0.2s}
+.addBtn:active{transform:scale(0.96)}
 .subscribe{margin:36px 16px;background:white;border-radius:28px;padding:32px 20px;box-shadow:0 12px 30px rgba(23,53,31,.08);text-align:center;display:flex;flex-direction:column;align-items:center}
 .subscribe h2{margin:0 0 12px}
 .subscribe p{color:var(--muted);line-height:1.5;margin:0 auto 20px;max-width:500px}
