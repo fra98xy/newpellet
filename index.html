@@ -94,16 +94,20 @@
     </div>
     <div id="cartItems" class="cartItems"></div>
     <label class="field">
-      Nome cliente
-      <input id="customerName" placeholder="Es. Mario Rossi">
+      Nome cliente *
+      <input id="customerName" placeholder="Es. Mario Rossi" required>
     </label>
     <label class="field">
-      Email
-      <input id="customerEmail" type="email" placeholder="Es. mario@example.com">
+      Email *
+      <input id="customerEmail" type="email" placeholder="Es. mario@example.com" required>
     </label>
     <label class="field">
-      Comune / indirizzo
-      <input id="customerAddress" placeholder="Es. Porto Viro, Via...">
+      Telefono (Cellulare) *
+      <input id="customerPhone" type="tel" placeholder="Es. 3331234567" required>
+    </label>
+    <label class="field">
+      Via e Paese (es. Porto Viro, Cavarzere) *
+      <input id="customerAddress" placeholder="Es. Porto Viro, Via Roma 1" required>
     </label>
     <label class="field">
       Note

@@ -83,7 +83,7 @@
   <div class="card">
     <h2>Ultimi Ordini</h2>
     <table id="ordersTable">
-      <tr><th>Cliente</th><th>Email</th><th>Indirizzo</th><th>Totale</th><th>Data</th></tr>
+      <tr><th>Cliente</th><th>Email</th><th>Telefono</th><th>Indirizzo</th><th>Totale</th><th>Data</th></tr>
     </table>
   </div>
   
@@ -123,7 +123,7 @@
         // Ordini
         const ordersTable = document.getElementById('ordersTable');
         data.orders.forEach(ord => {
-          ordersTable.innerHTML += `<tr><td>${ord.customerName}</td><td>${ord.customerEmail || '-'}</td><td>${ord.customerAddress}</td><td>${ord.totalPrice}</td><td>${new Date(ord.createdAt).toLocaleString()}</td></tr>`;
+          ordersTable.innerHTML += `<tr><td>${ord.customerName}</td><td>${ord.customerEmail || '-'}</td><td>${ord.customerPhone || '-'}</td><td>${ord.customerAddress}</td><td>${ord.totalPrice}</td><td>${new Date(ord.createdAt).toLocaleString()}</td></tr>`;
         });
         
         // Assistenza
