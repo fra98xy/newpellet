@@ -28,7 +28,7 @@ export default async (req: Request) => {
   if (req.method !== "POST") return new Response("Method not allowed", { status: 405 });
 
   try {
-    const { name, phone, email, subscribe, address, notes, cart, cartDetails, total, isOver80 } = await req.json();
+    const { name, phone, email, subscribe, address, notes, cart, cartDetails, total, isOver80, distance } = await req.json();
 
     const customerName = String(name || "").trim();
     const customerPhone = String(phone || "").trim();
@@ -36,6 +36,10 @@ export default async (req: Request) => {
     const customerAddress = String(address || "").trim();
     const customerNotes = String(notes || "").trim();
     const subjectCustomerName = customerName.replace(/[\r\n]+/g, " ").slice(0, 120);
+
+    if (distance === "oltre100") {
+      return new Response(JSON.stringify({ error: "Mi dispiace ma siamo fuori zona" }), { status: 400, headers: { "Content-Type": "application/json" } });
+    }
 
     if (!customerName || !customerPhone || !customerAddress || !Array.isArray(cart) || cart.length === 0) {
       return new Response("Missing or invalid order fields", { status: 400 });

@@ -131,6 +131,25 @@ function renderCart(){
     }).join("");
   }
   $("#cartTotal").textContent = euro(getCartTotal());
+
+  const distance = $("#customerDistance") ? $("#customerDistance").value : "entro80";
+  const warningEl = $("#outOfZoneWarning");
+  const sendBtn = $("#sendWhatsappBtn");
+  if (distance === "oltre100") {
+    if (warningEl) warningEl.classList.remove("hidden");
+    if (sendBtn) {
+      sendBtn.disabled = true;
+      sendBtn.style.opacity = "0.5";
+      sendBtn.style.cursor = "not-allowed";
+    }
+  } else {
+    if (warningEl) warningEl.classList.add("hidden");
+    if (sendBtn) {
+      sendBtn.disabled = false;
+      sendBtn.style.opacity = "";
+      sendBtn.style.cursor = "";
+    }
+  }
 }
 
 window.removeFromCart = function(id){
@@ -152,6 +171,11 @@ async function submitOrder() {
   const distance = $("#customerDistance").value;
 
   if(!name || !phone || !address) { toast("Inserisci nome, telefono e indirizzo completo"); return; }
+
+  if (distance === "oltre100") {
+    toast("Mi dispiace ma siamo fuori zona");
+    return;
+  }
 
   const isOver80 = distance === "oltre80";
   const total = getCartTotal();
@@ -196,7 +220,7 @@ async function submitOrder() {
     const res = await fetch("/api/orders", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, phone, email, subscribe, address, notes, cart, cartDetails, total: euro(total), isOver80, rawTotal: total })
+      body: JSON.stringify({ name, phone, email, subscribe, address, notes, cart, cartDetails, total: euro(total), isOver80, rawTotal: total, distance })
     });
     if(!res.ok) throw new Error("Errore salvataggio ordine");
     const result = await res.json();
