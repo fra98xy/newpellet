@@ -37,10 +37,6 @@ export default async (req: Request) => {
     const customerNotes = String(notes || "").trim();
     const subjectCustomerName = customerName.replace(/[\r\n]+/g, " ").slice(0, 120);
 
-    if (distance === "oltre100") {
-      return new Response(JSON.stringify({ error: "Mi dispiace ma siamo fuori zona" }), { status: 400, headers: { "Content-Type": "application/json" } });
-    }
-
     if (!customerName || !customerPhone || !customerAddress || !Array.isArray(cart) || cart.length === 0) {
       return new Response("Missing or invalid order fields", { status: 400 });
     }
@@ -68,7 +64,8 @@ export default async (req: Request) => {
             email: customerEmail,
             name: customerName,
             surname: "", // We only have full name from the order
-            address: customerAddress
+            address: customerAddress,
+            phone: customerPhone
           })
         });
       } catch (err) {
@@ -240,7 +237,7 @@ export default async (req: Request) => {
           from: `"Newpellet Ordini" <${smtpUser}>`,
           to: STORE_EMAIL,
           replyTo: customerEmail || smtpUser,
-          subject: `Nuovo ordine #${orderId} - ${subjectCustomerName}`,
+          subject: distance === "oltre100" ? `[FUORI ZONA] Nuovo ordine #${orderId} - ${subjectCustomerName}` : `Nuovo ordine #${orderId} - ${subjectCustomerName}`,
           html: `<p>Nuovo ordine ricevuto dal sito Newpellet.</p>
                  <ul>
                    <li><strong>Cliente:</strong> ${escapeHtml(customerName)}</li>
@@ -248,6 +245,7 @@ export default async (req: Request) => {
                    ${customerEmail ? `<li><strong>Email:</strong> ${escapeHtml(customerEmail)}</li>` : ''}
                    <li><strong>Indirizzo:</strong> ${escapeHtml(customerAddress)}</li>
                    <li><strong>Totale indicativo:</strong> ${escapeHtml(total)}</li>
+                   <li><strong>Distanza oltre 100 km (FUORI ZONA):</strong> ${distance === "oltre100" ? "Sì" : "No"}</li>
                    <li><strong>Distanza oltre 80 km:</strong> ${isOver80 ? "Sì" : "No"}</li>
                    <li><strong>Note:</strong> ${escapeHtml(customerNotes || "Nessuna nota")}</li>
                  </ul>
@@ -260,15 +258,19 @@ export default async (req: Request) => {
           await transporter.sendMail({
             from: `"Newpellet" <${smtpUser}>`,
             to: customerEmail,
-            subject: `Conferma ordine #${orderId} - Newpellet`,
-            html: `<p>Gentile ${escapeHtml(customerName)},</p>
-                   <p>grazie per il tuo ordine. Newpellet ha ricevuto la richiesta e confermerà disponibilità e consegna.</p>
-                   <p>In allegato trovi la bolla di trasporto con il riepilogo dell'ordine.</p>
-                   <ul>
-                     <li><strong>Totale indicativo:</strong> ${escapeHtml(total)}</li>
-                     <li><strong>Indirizzo:</strong> ${escapeHtml(customerAddress)}</li>
-                   </ul>
-                   <p>A presto,<br>Newpellet</p>`,
+            subject: distance === "oltre100" ? `Ordine #${orderId} annullato (Fuori zona) - Newpellet` : `Conferma ordine #${orderId} - Newpellet`,
+            html: distance === "oltre100"
+              ? `<p>Gentile ${escapeHtml(customerName)},</p>
+                 <p>ci dispiace, ma il tuo indirizzo di consegna si trova al di fuori della nostra zona di copertura (oltre 100 km da Cona, Venezia). Di conseguenza non possiamo confermare il tuo ordine.</p>
+                 <p>A presto,<br>Newpellet</p>`
+              : `<p>Gentile ${escapeHtml(customerName)},</p>
+                 <p>grazie per il tuo ordine. Newpellet ha ricevuto la richiesta e confermerà disponibilità e consegna.</p>
+                 <p>In allegato trovi la bolla di trasporto con il riepilogo dell'ordine.</p>
+                 <ul>
+                   <li><strong>Totale indicativo:</strong> ${escapeHtml(total)}</li>
+                   <li><strong>Indirizzo:</strong> ${escapeHtml(customerAddress)}</li>
+                 </ul>
+                 <p>A presto,<br>Newpellet</p>`,
             attachments: [attachment]
           });
           customerEmailSent = true;
@@ -303,8 +305,9 @@ export default async (req: Request) => {
         }
 
         const chatId = `${cleanedPhone}@c.us`;
-        const orderId = order.id.toString().padStart(6, '0');
-        const messageText = `Ciao ${customerName}! 🌿\nIl tuo ordine su *Newpellet* è stato preso in carico con successo.\n\n*Riepilogo Ordine:*\n- *Numero:* #${orderId}\n- *Totale indicativo:* ${total}\n- *Indirizzo di consegna:* ${customerAddress}\n\nGrazie per averci scelto! A presto.`;
+        const messageText = distance === "oltre100"
+          ? `Mi dispiace ma siamo fuori zona non possiamo eseguire la consegna`
+          : `Grazie per il tuo ordine. È stato preso in carico a breve verrai contattato dal nostro team per eventuali informazioni su data di consegna e orario`;
 
         const sendUrl = `${greenApiApiUrl}/waInstance${greenApiIdInstance}/sendMessage/${greenApiApiToken}`;
         const response = await fetch(sendUrl, {

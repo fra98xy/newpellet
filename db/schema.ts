@@ -6,6 +6,7 @@ export const newsletter_subscribers = pgTable("newsletter_subscribers", {
   name: text(),
   surname: text(),
   address: text(),
+  phone: text(),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
