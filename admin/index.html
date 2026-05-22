@@ -32,6 +32,90 @@
   </div>
 
   <div class="card">
+    <h2>Stato Configurazione WhatsApp (Green API)</h2>
+    <div style="background: #f9f9f9; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+      <p>Verifica se le credenziali Green API (GREEN_API_ID_INSTANCE e GREEN_API_API_TOKEN) sono configurate correttamente e se l'istanza è connessa.</p>
+      <button onclick="checkWhatsAppStatus()" style="background: #25d366; color: #fff; border: none; padding: 8px 15px; cursor: pointer; font-weight: bold; border-radius: 4px;">Controlla Stato Istanza</button>
+      <div id="waStatusResult" style="margin-top: 10px; font-weight: bold;"></div>
+    </div>
+
+    <h3>Invia un Messaggio di Test su WhatsApp</h3>
+    <div style="background: #f9f9f9; padding: 15px; border-radius: 5px;">
+      <input type="text" id="testWaPhone" placeholder="Numero di telefono (es. 3289361775)" style="max-width: 300px; display: block; margin-bottom: 10px;">
+      <textarea id="testWaMessage" placeholder="Messaggio di test..." rows="3" style="max-width: 500px; display: block; margin-bottom: 10px;">Questo è un messaggio di test per verificar la connessione di Newpellet con Green API! 🌿</textarea>
+      <button onclick="sendTestWhatsApp()" style="background: #128c7e; color: #fff; border: none; padding: 8px 15px; cursor: pointer; font-weight: bold; border-radius: 4px;">Invia Messaggio Test</button>
+      <div id="waTestResult" style="margin-top: 10px; font-weight: bold;"></div>
+    </div>
+
+    <script>
+      async function checkWhatsAppStatus() {
+        const resEl = document.getElementById('waStatusResult');
+        resEl.innerText = "Controllo in corso...";
+        resEl.style.color = "#333";
+        try {
+          const res = await fetch('/api/test-whatsapp');
+          const data = await res.json();
+          if (data.success) {
+            let statusIcon = "❓";
+            let color = "orange";
+            if (data.stateInstance === "authorized") {
+              statusIcon = "✅ Autorizzato (Pronto per inviare)";
+              color = "green";
+            } else if (data.stateInstance === "notAuthorized") {
+              statusIcon = "⚠️ Non Autorizzato (È necessario scansionare il codice QR nel pannello Green API)";
+              color = "red";
+            } else {
+              statusIcon = "⚠️ " + data.stateInstance;
+              color = "orange";
+            }
+            resEl.innerText = "Stato Istanza: " + statusIcon + "\nID Istanza: " + data.idInstance;
+            resEl.style.color = color;
+          } else {
+            resEl.innerText = "❌ Errore Green API: " + (data.error || "Errore sconosciuto");
+            resEl.style.color = "red";
+          }
+        } catch (e) {
+          resEl.innerText = "❌ Errore di rete durante il controllo.";
+          resEl.style.color = "red";
+        }
+      }
+
+      async function sendTestWhatsApp() {
+        const resEl = document.getElementById('waTestResult');
+        const phone = document.getElementById('testWaPhone').value.trim();
+        const message = document.getElementById('testWaMessage').value.trim();
+
+        if (!phone || !message) {
+          resEl.innerText = "⚠️ Inserisci numero di telefono e messaggio.";
+          resEl.style.color = "orange";
+          return;
+        }
+
+        resEl.innerText = "Invio in corso...";
+        resEl.style.color = "#333";
+        try {
+          const res = await fetch('/api/test-whatsapp', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ phone, message })
+          });
+          const data = await res.json();
+          if (data.success) {
+            resEl.innerText = "✅ Messaggio di test inviato con successo! ID: " + (data.data?.idMessage || "N/A");
+            resEl.style.color = "green";
+          } else {
+            resEl.innerText = "❌ Errore d'invio: " + (data.error || "Errore sconosciuto");
+            resEl.style.color = "red";
+          }
+        } catch (e) {
+          resEl.innerText = "❌ Errore di rete durante l'invio del messaggio di test.";
+          resEl.style.color = "red";
+        }
+      }
+    </script>
+  </div>
+
+  <div class="card">
     
     <h2>Test Configurazione Email (SMTP)</h2>
     <div style="background: #f9f9f9; padding: 15px; border-radius: 5px; margin-bottom: 20px;">

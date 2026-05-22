@@ -279,7 +279,54 @@ export default async (req: Request) => {
       console.error("Email sending failed:", e);
     }
 
-    return Response.json({ success: true, order, emailSent, ownerEmailSent, customerEmailSent, emailError });
+    // Send WhatsApp confirmation via Green API (if configured)
+    let whatsappSent = false;
+    let whatsappError: string | null = null;
+    const greenApiIdInstance = process.env["GREEN_API_ID_INSTANCE"];
+    const greenApiApiToken = process.env["GREEN_API_API_TOKEN"];
+    const greenApiApiUrl = process.env["GREEN_API_API_URL"] || "https://api.green-api.com";
+
+    if (greenApiIdInstance && greenApiApiToken && customerPhone) {
+      try {
+        let cleanedPhone = customerPhone.replace(/\D/g, "");
+        if (cleanedPhone.startsWith("00")) {
+          cleanedPhone = cleanedPhone.slice(2);
+        }
+        if (cleanedPhone.length === 10 && cleanedPhone.startsWith("3")) {
+          cleanedPhone = "39" + cleanedPhone;
+        } else if (cleanedPhone.length === 9 && cleanedPhone.startsWith("3")) {
+          cleanedPhone = "39" + cleanedPhone;
+        }
+
+        const chatId = `${cleanedPhone}@c.us`;
+        const orderId = order.id.toString().padStart(6, '0');
+        const messageText = `Ciao ${customerName}! 🌿\nIl tuo ordine su *Newpellet* è stato preso in carico con successo.\n\n*Riepilogo Ordine:*\n- *Numero:* #${orderId}\n- *Totale indicativo:* ${total}\n- *Indirizzo di consegna:* ${customerAddress}\n\nGrazie per averci scelto! A presto.`;
+
+        const sendUrl = `${greenApiApiUrl}/waInstance${greenApiIdInstance}/sendMessage/${greenApiApiToken}`;
+        const response = await fetch(sendUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            chatId,
+            message: messageText
+          })
+        });
+
+        if (response.ok) {
+          whatsappSent = true;
+          console.log(`WhatsApp message sent successfully via Green API to ${chatId}`);
+        } else {
+          const errorText = await response.text();
+          whatsappError = `Errore Green API: ${errorText} (Status: ${response.status})`;
+          console.error(`Failed to send WhatsApp via Green API: ${whatsappError}`);
+        }
+      } catch (waErr: any) {
+        whatsappError = waErr.message || String(waErr);
+        console.error("WhatsApp sending failed:", waErr);
+      }
+    }
+
+    return Response.json({ success: true, order, emailSent, ownerEmailSent, customerEmailSent, emailError, whatsappSent, whatsappError });
   } catch (error: any) {
     console.error(error);
     return new Response("Internal Server Error", { status: 500 });
