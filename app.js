@@ -137,18 +137,13 @@ function renderCart(){
   const sendBtn = $("#sendWhatsappBtn");
   if (distance === "oltre100") {
     if (warningEl) warningEl.classList.remove("hidden");
-    if (sendBtn) {
-      sendBtn.disabled = true;
-      sendBtn.style.opacity = "0.5";
-      sendBtn.style.cursor = "not-allowed";
-    }
   } else {
     if (warningEl) warningEl.classList.add("hidden");
-    if (sendBtn) {
-      sendBtn.disabled = false;
-      sendBtn.style.opacity = "";
-      sendBtn.style.cursor = "";
-    }
+  }
+  if (sendBtn) {
+    sendBtn.disabled = false;
+    sendBtn.style.opacity = "";
+    sendBtn.style.cursor = "";
   }
 }
 
@@ -171,11 +166,6 @@ async function submitOrder() {
   const distance = $("#customerDistance").value;
 
   if(!name || !phone || !address) { toast("Inserisci nome, telefono e indirizzo completo"); return; }
-
-  if (distance === "oltre100") {
-    toast("Mi dispiace ma siamo fuori zona");
-    return;
-  }
 
   const isOver80 = distance === "oltre80";
   const total = getCartTotal();
@@ -224,6 +214,13 @@ async function submitOrder() {
     });
     if(!res.ok) throw new Error("Errore salvataggio ordine");
     const result = await res.json();
+    
+    if (distance === "oltre100") {
+      toast("Mi dispiace ma siamo fuori zona");
+      cart = []; saveCart(); closeCart();
+      return;
+    }
+
     if(result.emailSent) {
       toast("Ordine inviato: email a Newpellet e al cliente.");
     } else {
@@ -231,6 +228,11 @@ async function submitOrder() {
     }
   } catch(e) {
     console.error(e);
+    if (distance === "oltre100") {
+      toast("Mi dispiace ma siamo fuori zona");
+      cart = []; saveCart(); closeCart();
+      return;
+    }
     toast("Ordine via WhatsApp pronto. Email non confermata.");
   }
 
@@ -377,11 +379,12 @@ document.getElementById("newsletterForm").addEventListener("submit", async (e) =
   const name = form.querySelector('input[name="name"]').value;
   const surname = form.querySelector('input[name="surname"]').value;
   const address = form.querySelector('input[name="address"]').value;
+  const phone = form.querySelector('input[name="phone"]').value;
   try {
     const response = await fetch("/api/newsletter", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, name, surname, address })
+      body: JSON.stringify({ email, name, surname, address, phone })
     });
     if (response.ok) {
       toast("Iscrizione completata!");
