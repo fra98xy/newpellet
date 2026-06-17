@@ -1,4 +1,4 @@
-const CACHE_NAME = "newpellet-pwa-v5";
+const CACHE_NAME = "newpellet-pwa-v6";
 const ASSETS = [
   "/",
   "index.html",
@@ -7,7 +7,6 @@ const ASSETS = [
   "manifest.webmanifest",
   "assets/icon-192.png",
   "assets/icon-512.png",
-  "assets/richwood-abete-lettonia.png",
   "assets/hitze-pellet.png",
   "assets/timber-pellet-abete-bianco-tedesco.png"
 ];
