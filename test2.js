@@ -3,9 +3,9 @@ const code = fs.readFileSync('app.js', 'utf8');
 
 const products = [
   {
-    id:"richwood-abete-lettonia",
-    name:"Richwood Abete Lettonia",
-    price:476,
+    id:"hitze-pellet",
+    name:"Hitze Pellet",
+    price:462,
     unit:"bancale (70 sacchi)",
   }
 ];

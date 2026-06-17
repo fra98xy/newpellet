@@ -2,23 +2,11 @@ const WHATSAPP_NUMBER = "393289361775";
 
 const products = [
   {
-    id:"richwood-abete-lettonia",
-    name:"Richwood Abete Lettonia",
-    description:"Pellet di abete proveniente dalla Lettonia, ottima qualità.",
-    price:476,
-    displayPrice: 6.80,
-    unit:"bancale (70 sacchi)",
-    displayUnit: "sacco",
-    pack:"Bancale 70 sacchi",
-    image:"/.netlify/images?url=/assets/richwood-abete-lettonia.png&w=600&q=80",
-    tags:["15 kg","Abete","Lettonia"]
-  },
-  {
     id:"hitze-pellet",
     name:"Hitze Pellet",
     description:"Pellet di puro abete tedesco, alta resa termica.",
-    price:455,
-    displayPrice: 6.50,
+    price:462,
+    displayPrice: 6.60,
     unit:"bancale (70 sacchi)",
     displayUnit: "sacco",
     pack:"Bancale 70 sacchi",
@@ -29,8 +17,8 @@ const products = [
     id:"timber-abete-bianco-tedesco",
     name:"Timber Pellet Abete Bianco Tedesco",
     description:"Pellet di abete bianco tedesco Timber, alta qualità.",
-    price:476,
-    displayPrice: 6.80,
+    price:489.30,
+    displayPrice: 6.99,
     unit:"bancale (70 sacchi)",
     displayUnit: "sacco",
     pack:"Bancale 70 sacchi",
