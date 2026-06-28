@@ -24,6 +24,30 @@ const products = [
     pack:"Bancale 70 sacchi",
     image:"/.netlify/images?url=/assets/timber-pellet-abete-bianco-tedesco.png&w=600&q=80",
     tags:["15 kg","Abete Bianco Tedesco","Timber"]
+  },
+  {
+    id:"naturpellets-abete-austriaco-rosso",
+    name:"Naturpellets Abete Austriaco",
+    description:"Pellet in legno naturale 100% abete austriaco, sacco rosso.",
+    price:489.30,
+    displayPrice: 6.99,
+    unit:"bancale (70 sacchi)",
+    displayUnit: "sacco",
+    pack:"Bancale 70 sacchi",
+    image:"/.netlify/images?url=/assets/naturpellets-abete-austriaco-rosso.png&w=600&q=80",
+    tags:["15 kg","Abete Austriaco","Made in Austria"]
+  },
+  {
+    id:"naturpellets-abete-austriaco-bianco",
+    name:"Naturpellets Abete Austriaco",
+    description:"Pellet in legno naturale 100% abete austriaco, sacco bianco.",
+    price:504,
+    displayPrice: 7.20,
+    unit:"bancale (70 sacchi)",
+    displayUnit: "sacco",
+    pack:"Bancale 70 sacchi",
+    image:"/.netlify/images?url=/assets/naturpellets-abete-austriaco-bianco.png&w=600&q=80",
+    tags:["15 kg","Abete Austriaco","Made in Austria"]
   }
 ];
 
