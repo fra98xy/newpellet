@@ -73,7 +73,7 @@ function renderProducts(){
   const grid = $("#productsGrid");
   grid.innerHTML = products.map(p => `
     <article class="product">
-      <img src="${p.image}" alt="${p.name}">
+      <img class="${p.id.includes("naturpellets-abete-austriaco") ? "productImage productImage--fit" : "productImage"}" src="${p.image}" alt="${p.name}">
       <div class="productBody">
         <div class="productTop">
           <div>
