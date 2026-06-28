@@ -24,6 +24,18 @@ const products = [
     pack:"Bancale 70 sacchi",
     image:"/.netlify/images?url=/assets/naturpellets-abete-austriaco-bianco.png&w=600&q=80",
     tags:["15 kg","Abete Austriaco","Made in Austria"]
+  },
+  {
+    id:"hitze-pellet-abete-lituano",
+    name:"Hitze Pellet Abete Lituano",
+    description:"Pellet in legno naturale di abete lituano.",
+    price:476,
+    displayPrice: 6.80,
+    unit:"bancale (70 sacchi)",
+    displayUnit: "sacco",
+    pack:"Bancale 70 sacchi",
+    image:"/.netlify/images?url=/assets/hitze-pellet.png&w=600&q=80",
+    tags:["15 kg","Abete Lituano","Made in Lithuania"]
   }
 ];
 
